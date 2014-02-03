@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MapOverlayButton" parent="@android:style/Widget.Holo.Light.Button"></style>
+    <style name="StopSpinner" parent="@android:style/Widget.Holo.Light.Spinner"></style>
+</resources>

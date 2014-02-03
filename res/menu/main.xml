@@ -1,0 +1,19 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:support="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/facebook"
+        support:showAsAction="ifRoom"
+        android:title="@string/fanpage"
+        android:icon="@drawable/ic_facebook"/>
+    
+    <item
+        android:id="@+id/refresh"
+        support:showAsAction="always"
+        android:title="@string/refresh" android:icon="@drawable/ic_menu_refresh"/>
+    <item
+        android:id="@+id/tagProgram"
+        support:showAsAction="never"
+        android:title="@string/nfc_prog" android:icon="@android:drawable/ic_menu_upload"/>
+
+</menu>

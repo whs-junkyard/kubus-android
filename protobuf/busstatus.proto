@@ -1,0 +1,13 @@
+message BusStatus {
+	required uint32 id = 1;
+	required uint32 lineid = 2;
+	optional string name = 3;
+	optional string linename = 4;
+	optional uint64 estimated_time = 5;
+	optional uint64 estimated_time_since = 50;
+}
+
+// android options
+option java_package = "th.in.whs.ku.bus.protobuf";
+option optimize_for = LITE_RUNTIME;
+option java_generic_services = false;

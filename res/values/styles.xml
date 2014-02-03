@@ -1,0 +1,32 @@
+<resources>
+
+    <!--
+        Base application theme, dependent on API level. This theme is replaced
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+    -->
+    <style name="AppBaseTheme" parent="@style/Theme.Ku">
+        <!--
+            Theme customizations available in newer API levels can go in
+            res/values-vXX/styles.xml, while customizations related to
+            backward-compatibility can go here.
+        -->
+    </style>
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="AppBaseTheme">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="autoScaleTextViewStyle">@style/autoScaleTextView</item>
+    </style>
+    
+    <style name="autoScaleTextView">
+        <item name="@android:attr/padding">5dp</item>
+        <item name="@android:attr/gravity">left</item>
+ 
+        <!-- use the next line to alter the minimum text size (uncomment first)-->
+        <item name="@attr/minTextSize">5dp</item>
+    </style>
+    
+    <style name="MapOverlayButton" parent="@android:style/Widget.Button"></style>
+    <style name="StopSpinner" parent="@android:style/Widget.Spinner"></style>
+
+</resources>

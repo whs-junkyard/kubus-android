@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <de.ankri.views.AutoScaleTextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="5dp"
+        android:maxLines="1"
+        android:text="@string/app_name"
+        android:textSize="32sp" />
+
+    <com.google.android.gms.maps.MapView xmlns:android="http://schemas.android.com/apk/res/android"
+	    xmlns:map="http://schemas.android.com/apk/res-auto"
+	    android:id="@+id/map"
+	    android:layout_width="match_parent"
+	    android:layout_height="180dp"
+	    map:cameraTargetLat="13.848914"
+	    map:cameraTargetLng="100.572238"
+	    map:cameraZoom="16"
+	    map:uiZoomControls="false"
+	    map:cameraTilt="45" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <ProgressBar
+            android:id="@+id/progress"
+            style="android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true" />
+        
+        <TextView
+                android:id="@+id/nobus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="@string/no_bus"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:visibility="gone" />
+
+        <ListView
+            android:id="@+id/busList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:dividerHeight="0dp"
+			android:divider="@null" >
+        </ListView>
+
+    </RelativeLayout>
+
+</LinearLayout>

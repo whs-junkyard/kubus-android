@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">KUSmartBus</string>
+    <string name="action_settings">ตั้งค่า</string>
+    <string name="map_title">แผนที่</string>
+    <string name="stop_title">ป้ายรถ</string>
+    <string name="route_title">ค้นหาเส้นทาง</string>
+    <string name="bus_line">สาย %d</string>
+    <string name="bus_no_line">อยู่นอกสาย</string>
+    <string name="bus_parking">จอด</string>
+    <string name="meter">ม</string>
+    <string name="kilometer">กม</string>
+    <string name="compass">เข็มทิศ</string>
+    <string name="refresh">รีเฟรช</string>
+    <string name="loading">กำลังโหลด</string>
+    <string name="all_line">ทุกสาย</string>
+    <string name="no_bus">ไม่มีรถ</string>
+    <string name="there_from">ต้นทาง</string>
+    <string name="there_to">ปลายทาง</string>
+    <string name="select_stop">เลือกป้าย</string>
+    <string name="select_stop_from">เลือกต้นทาง</string>
+    <string name="select_stop_to">เลือกปลายทาง</string>
+    <string name="line_passing">สายที่ผ่าน: </string>
+    <string name="fanpage">เพจเฟสบุ๊ค</string>
+    <string name="notify">แจ้งเตือน</string>
+    <string name="notify_ok">โปรแกรมจะแจ้งเตือน 5 นาทีก่อนรถมา</string>
+    <string name="notify_msg">%1$s (%2$s) จะจอดป้ายในอีก %3$d นาที</string>
+    <string name="route_map">เส้นทาง</string>
+    
+    <!-- vote -->
+    <string name="rate_title">โหวต KUSmartBus</string>
+    <string name="rate_explanation">ถ้าถูกใจ KUSmartBus กรุณาให้คะแนน 5 ดาวบน Play Store</string>
+    <string name="rate_now">โหวตเลย</string>
+    <string name="rate_later">ไว้ก่อน</string>
+    <string name="rate_never">ขอผ่าน :(</string>
+    
+    <!-- errors -->
+    <string name="map_api_error">ไม่สามารถเริ่ม Google Maps</string>
+    <string name="require_play">ต้องติดตั้ง Google Play Services</string>
+    <string name="json_error">ผิดพลาด</string>
+    <string name="internet_error">อินเทอร์เน็ตมีปัญหา</string>
+    <string name="no_stop">ไม่มีป้ายรถนี้</string>
+    <string name="nfc_min_ver">NFC ต้องใช้ Android 4.0 ขึ้นไป</string>
+    <string name="gcm_not_avail">Google Cloud Messaging ใช้การไม่ได้</string>
+    
+    <!-- time -->
+    <string name="min">นาที</string>
+    <string name="minute">นาที</string>
+    <string name="minutes">นาที</string>
+    <string name="second">วินาที</string>
+    <string name="seconds">วินาที</string>
+    <string name="hour">ชั่วโมง</string>
+    <string name="hours">ชั่วโมง</string>
+    <string name="unknown_time">-</string>
+
+</resources>

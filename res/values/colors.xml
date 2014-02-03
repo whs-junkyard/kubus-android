@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="gray">#888888</color>
+    <color name="red">#FF0000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="line1">#800000</color>
+    <color name="line2">#0000A5</color>
+    <color name="line3">#2c9f09</color>
+    <color name="line4">#9d9f09</color>
+    <color name="line5">#000000</color>
+    
+    <color name="card_background">#ffffff</color>
+    <color name="card_shadow_1">#d4d4d4</color>
+    <color name="card_shadow_2">#dddddd</color>
+    <color name="card_detailing">#eee</color>
+</resources>

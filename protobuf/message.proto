@@ -1,0 +1,35 @@
+message Packet {
+	message BusUpdate {
+		required uint32 id = 1;
+		required double latitude = 2;
+		required double longitude = 3;
+		optional uint32 no = 4;
+		optional string name = 5;	
+		optional uint32 lineid = 6;
+		optional bool isinline = 7;
+		optional bool isinpark = 8;
+		optional bool available = 9;
+		optional uint64 timestamp = 10;
+		optional string extra = 100;
+	}
+	message BusDelete {
+		required uint32 id = 1;
+	}
+	message BusPosition {
+		// same as busupdate, but for position only
+		required uint32 id = 1;
+		required double latitude = 2;
+		required double longitude = 3;
+	}
+
+	repeated BusUpdate add = 1;
+	repeated BusDelete del = 2;
+	// given when connecting
+	repeated BusUpdate uncompressed = 3;
+	// added 30 jan 2014
+	repeated BusPosition position = 4;
+}
+
+option java_package = "th.in.whs.ku.bus.protobuf";
+option optimize_for = LITE_RUNTIME;
+option java_generic_services = false;

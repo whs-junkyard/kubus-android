@@ -1,0 +1,9 @@
+[submodule "sentry"]
+	path = libs/sentry
+	url = https://github.com/whs/Sentry-Android.git
+[submodule "AppRater"]
+	path = libs/AppRater
+	url = https://github.com/delight-im/AppRater.git
+[submodule "android-websockets"]
+	path = libs/android-websockets
+	url = https://github.com/koush/android-websockets

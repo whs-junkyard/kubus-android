@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/busLineRow"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="10dp"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:paddingBottom="5dp" >
+
+    <RelativeLayout
+        android:id="@+id/busLineRowBg"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:background="@drawable/cards"
+        android:padding="5dp" >
+
+        <TextView
+            android:id="@+id/lineNo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="5dp"
+            android:text="Line 1"
+            android:textColor="@android:color/white"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            android:id="@+id/busName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/lineNo"
+            android:layout_below="@+id/lineNo"
+            android:text="@string/minute"
+            android:textColor="@android:color/white" />
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/busNo"
+            android:layout_marginTop="-3dp"
+            android:layout_marginRight="5dp"
+            android:gravity="center"
+            android:text="@string/min"
+            android:textColor="@android:color/white"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/busNo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/textView1"
+            android:layout_alignRight="@+id/textView1"
+            android:layout_alignParentTop="true"
+            android:gravity="center"
+            android:text="10"
+            android:maxLines="1"
+            android:textColor="@android:color/white"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <View
+            android:layout_width="2dp"
+            android:layout_height="55dp"
+            android:layout_toLeftOf="@+id/textView1"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="-5dp"
+            android:background="@android:color/white" />
+
+    </RelativeLayout>
+
+</LinearLayout>

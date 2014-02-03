@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="th.in.whs.ku.bus"
+    android:versionCode="10"
+    android:versionName="1.7" android:installLocation="preferExternal">
+
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="19" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- google maps -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- nfc -->
+    <uses-permission android:name="android.permission.NFC" />
+    <!-- cloud messaging -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <permission android:name="th.in.whs.bus.ku.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="th.in.whs.bus.ku.permission.C2D_MESSAGE" />
+    
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true"/>
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.Ku" >
+        <meta-data
+   		 	android:name="com.google.android.gms.version"
+   		 	android:value="@integer/google_play_services_version" />
+        <meta-data
+    		android:name="com.google.android.maps.v2.API_KEY"
+    		android:value="AIzaSyB_RewS40A9dkg7uLmLbNuKDg67cCheAHc"/>
+        <meta-data
+            android:name="sentry_server"
+            android:value="http://29ef3d97ab43490eab03740e56aaa485:0e6e9a21e2fd40dcaad9fa42cceeac34@sentry.whs.in.th/2" />
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".BusStopListActivity"
+            android:label="@string/select_stop">
+        </activity>
+        <activity
+            android:name=".UriHandlerActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="kubus" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".NFCProgramActivity"
+            android:label="@string/nfc_prog">
+        </activity>
+        <activity
+            android:name=".RouteMapActivity"
+            android:label="@string/route_map">
+        </activity>
+        <receiver
+            android:name=".GcmBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <category android:name="th.in.whs.ku.bus" />
+            </intent-filter>
+        </receiver>
+        <service android:name=".GCMIntentService" />
+    </application>
+
+</manifest>
