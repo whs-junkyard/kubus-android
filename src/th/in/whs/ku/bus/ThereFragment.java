@@ -113,7 +113,10 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 					@Override
 					public void onFailure(int statusCode, Throwable error,
 							String content) {
-						Toast.makeText(getActivity(), R.string.internet_error, Toast.LENGTH_LONG).show();
+						// http://sentry.whs.in.th/kusmartbus/android/group/124/
+						if(getActivity() != null){
+							Toast.makeText(getActivity(), R.string.internet_error, Toast.LENGTH_LONG).show();
+						}
 						Log.e("ThereFragment", "Unable to register for notification", error);
 					}
 					

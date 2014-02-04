@@ -162,7 +162,9 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback 
     	appRater.setPhrases(R.string.rate_title, R.string.rate_explanation, R.string.rate_now, R.string.rate_later, R.string.rate_never);
     	appRater.show();
     	
-    	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1){
+    	// GINGERBREAD_MR1 support NFC, but does not support createUri
+    	// if I have access to a gingerbread phone with NFC I might fix this
+    	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH){
     		NfcAdapter nfc = NfcAdapter.getDefaultAdapter(this);
     	}
     }
@@ -386,7 +388,6 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback 
 		this.setNFC(lastNFCMessage);
 	}
 	
-	@SuppressWarnings("deprecation")
 	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public void setNFC(NdefMessage message){
 		lastNFCMessage = message;
@@ -395,15 +396,13 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback 
     	}else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH){
 			// android beam
     		nfc.setNdefPushMessage(message, this);
-		}else{
-			// nfc push
-			// note: untested
-			nfc.enableForegroundNdefPush(this, message);
 		}
 	}
 	
 	public void unsetNFC(){
-		this.setNFC(NFCBuilder.createMessage(this, Uri.parse("kubus://home")));
+		if(nfc != null){
+			this.setNFC(NFCBuilder.createMessage(this, Uri.parse("kubus://home")));
+		}
 	}
 
 	private class BusPositionRefresher implements Runnable {
