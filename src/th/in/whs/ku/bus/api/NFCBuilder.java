@@ -16,6 +16,9 @@ import android.os.Build;
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class NFCBuilder {
 	public static NdefMessage createMessage(Context context, Uri uri){
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH){
+			return null;
+		}
 		NdefRecord[] records = new NdefRecord[]{
 				NdefRecord.createUri(uri),
 				NdefRecord.createApplicationRecord(context.getPackageName())

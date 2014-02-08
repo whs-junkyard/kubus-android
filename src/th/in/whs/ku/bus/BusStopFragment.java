@@ -3,6 +3,8 @@ package th.in.whs.ku.bus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.joshdholtz.sentry.Sentry;
+
 import th.in.whs.ku.bus.api.NFCBuilder;
 import android.content.Context;
 import android.net.Uri;
@@ -75,12 +77,16 @@ public class BusStopFragment extends Fragment implements StopSelectedInterface, 
 		ft.commitAllowingStateLoss();
 		
 		try {
-			if(getActivity() instanceof MainActivity && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH){
-				((MainActivity) getActivity()).setNFC(
+			if(getActivity() instanceof NFCSettableActivity && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH){
+				((NFCSettableActivity) getActivity()).setNFC(
 						NFCBuilder.createMessage(getActivity(), Uri.parse("kubus://stop/" + item.get("ID")))
 				);
 			}
 		} catch (JSONException e) {
+		} catch (NoSuchMethodError e){
+			// I'm not sure why this happen...
+			// http://sentry.whs.in.th/kusmartbus/android/group/131/
+			Sentry.captureException(e, Sentry.SentryEventBuilder.SentryEventLevel.WARNING);
 		}
 	}
 

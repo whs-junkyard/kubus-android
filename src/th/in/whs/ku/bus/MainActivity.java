@@ -52,7 +52,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.MapsInitializer;
 import com.joshdholtz.sentry.Sentry;
 
-public class MainActivity extends ActionBarActivity implements Handler.Callback {
+public class MainActivity extends ActionBarActivity implements Handler.Callback, NFCSettableActivity {
 	
 	public final static String OPEN_STOP = "th.in.whs.bus.ku.STOP";
 	static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
