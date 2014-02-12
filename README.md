@@ -15,7 +15,7 @@
 
 ## License
 
-KUSmartBus for Android is licensed under [GNU Affero General Public License, version 3](https://www.gnu.org/licenses/agpl-3.0.html) or later.
+KUSmartBus for Android is licensed under [GNU General Public License, version 2](https://www.gnu.org/licenses/gpl-2.0.html) or later.
 
 The name "KUSmartBus", "KU Smart Bus" may not be used without permission.
 
