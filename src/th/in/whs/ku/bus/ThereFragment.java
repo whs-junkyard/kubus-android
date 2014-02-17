@@ -106,7 +106,10 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 							alert.show();
 							notifyBtn.setEnabled(true);
 						}else{
-							Toast.makeText(getActivity(), R.string.notify_ok, Toast.LENGTH_LONG).show();
+							// http://sentry.whs.in.th/kusmartbus/android/group/158/
+							if(getActivity() != null){
+								Toast.makeText(getActivity(), R.string.notify_ok, Toast.LENGTH_LONG).show();
+							}
 						}
 					}
 
