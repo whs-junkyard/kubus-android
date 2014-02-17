@@ -331,6 +331,9 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 	}
 
 	private void loadBusInfo(String idFrom, String idTo) {
+		if(getView() == null){
+			return;
+		}
 		percentLoaded = new float[2];
 		data = new JSONArray[2];
 

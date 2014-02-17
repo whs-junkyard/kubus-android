@@ -107,4 +107,21 @@ public class Bus{
     public int getColor(){
     	return BusMapController.getColor(lineid);
     }
+    
+    public boolean equals(Bus b){
+    	return this.id == b.id &&
+    		this.no == b.no &&
+    		this.name == b.name &&
+    		this.lineid == b.lineid &&
+    		this.isinline == b.isinline &&
+    		this.isinpark == b.isinpark &&
+    		this.available == b.available &&
+    		this.latitude == b.latitude &&
+    		this.longitude == b.longitude;
+    }
+    
+    public boolean isLocationEqual(Bus b){
+    	return this.latitude == b.latitude &&
+        		this.longitude == b.longitude;
+    }
 }

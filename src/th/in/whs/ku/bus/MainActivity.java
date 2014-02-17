@@ -29,6 +29,7 @@ import android.nfc.NdefMessage;
 import android.nfc.NfcAdapter;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
@@ -58,6 +59,8 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
 	static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
 	static final private int CLOSE = 9999;
 	public final int REFRESH_INTERVAL = 60000;
+	public final static boolean USE_TRACE = false;
+	public final static boolean USE_NFC_PROGRAM = false;
 
     private BusPositionRefresher refresher = new BusPositionRefresher();
     private Handler handler = new Handler(this);
@@ -69,6 +72,10 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
+		if(USE_TRACE){
+			Debug.startMethodTracing("kusmartbus");
+		}
+		
     	if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= 9) {
     		if(Build.VERSION.SDK_INT >= 11){
     			StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
@@ -174,7 +181,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
     	MenuInflater inflater = getMenuInflater();
     	inflater.inflate(R.menu.main, menu);
     	menu.findItem(R.id.refresh).setVisible(canRefresh);
-    	menu.findItem(R.id.tagProgram).setVisible(BuildConfig.DEBUG);
+    	menu.findItem(R.id.tagProgram).setVisible(BuildConfig.DEBUG && USE_NFC_PROGRAM);
 		return true;
 	}
     
@@ -272,7 +279,15 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
     	}
     }
     
-    private boolean checkGooglePlayBool(){
+    @Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if(USE_TRACE){
+			Debug.stopMethodTracing();
+		}
+	}
+
+	private boolean checkGooglePlayBool(){
     	return GooglePlayServicesUtil.isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS; 
     }
     

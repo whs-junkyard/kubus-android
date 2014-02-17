@@ -73,7 +73,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	 * Array of bus markers
 	 * Key is bus id
 	 */
-	private SparseArray<Marker> markers = new SparseArray<Marker>();
+	private SparseArray<BusMarker> markers = new SparseArray<BusMarker>();
 	private int listenerId = -1;
 	private boolean useFilter = false;
 	private ArrayList<Filter> filter = new ArrayList<Filter>();
@@ -163,15 +163,29 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			}
 			hasBus.add(bus.id);
 			
-			LatLng latlng = new LatLng(bus.latitude, bus.longitude);
-			BitmapDescriptor icon = getBusIcon(bus);
-			Marker marker = markers.get(bus.id);
+			BusMarker busMarker = markers.get(bus.id);
+			Marker marker;
+			boolean newlyCreated = false;
 			
-			if(marker == null){
+			if(busMarker == null){
+				LatLng latlng = new LatLng(bus.latitude, bus.longitude);
 				marker = map.addMarker(new MarkerOptions().position(latlng));
-				markers.put(bus.id, marker);
+				busMarker = new BusMarker(bus, marker);
+				markers.put(bus.id, busMarker);
+				newlyCreated = true;
+			}else{
+				if(busMarker.bus.equals(bus)){
+					continue;
+				}
+				
+				marker = busMarker.marker;
+				
+				if(!busMarker.bus.isLocationEqual(bus)){
+					LatLng latlng = new LatLng(bus.latitude, bus.longitude);
+					marker.setPosition(latlng);
+				}
 			}
-			marker.setPosition(latlng);
+			
 			if(bus.lineid == 0 || bus.isinpark){
 				marker.setTitle(bus.name);
 				if(bus.isinpark){
@@ -183,10 +197,12 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 				marker.setTitle(String.format(context.getString(R.string.bus_line), bus.lineid));
 				marker.setSnippet(bus.name);
 			}
-			marker.setIcon(icon);
-//			if(bus.isinpark){
-//				marker.setAlpha(IN_PARK_ALPHA);
-//			}else 
+			
+			if(newlyCreated || busMarker.bus.lineid != bus.lineid){
+				BitmapDescriptor icon = getBusIcon(bus);
+				marker.setIcon(icon);
+			}
+			
 			if(!bus.isinline){
 				marker.setAlpha(OUT_OF_SERVICE_ALPHA);
 			}else{
@@ -194,14 +210,15 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			}
 		}
 		ArrayList<Integer> remove = new ArrayList<Integer>();
-		for(int i=0; i<markers.size(); i++){
+		int size = markers.size();
+		for(int i=0; i<size; i++){
 			int key = markers.keyAt(i);
 			if(!hasBus.contains(key)){
-				markers.valueAt(i).remove();
+				markers.valueAt(i).marker.remove();
 				remove.add(markers.keyAt(i));
 			}
 		}
-		// remove after otherwise .size() will break
+		// remove after otherwise .keyAt() will shift
 		for(int removeKey : remove){
 			markers.remove(removeKey);
 		}
@@ -404,7 +421,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	}
 	
 	public Marker get(int id){
-		return markers.get(id);
+		return markers.get(id).marker;
 	}
 	
 	private SparseArray<BitmapDescriptor> busIconCache = new SparseArray<BitmapDescriptor>();
@@ -567,7 +584,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			return false;
 		}
 		for(int i=0; i<markers.size(); i++){
-			if(markers.valueAt(i).equals(marker)){
+			if(markers.valueAt(i).marker.equals(marker)){
 				int busid = markers.keyAt(i);
 				Bus bus = BusPosition.get(busid);
 				polylineRequestedByUser = 2;
@@ -600,6 +617,16 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		public Filter(FilterType type, Integer value) {
 			this.type = type;
 			this.value = value;
+		}
+	}
+	
+	private class BusMarker{
+		public Bus bus;
+		public Marker marker;
+		
+		public BusMarker(Bus bus, Marker marker) {
+			this.bus = bus;
+			this.marker = marker;
 		}
 	}
 	
