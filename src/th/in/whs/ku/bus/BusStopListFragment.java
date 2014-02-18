@@ -24,9 +24,13 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -36,6 +40,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class BusStopListFragment extends ListFragment implements UserRefreshInterface {
+	
+	public static enum Sort {
+		NAME,
+		DISTANCE
+	};
 	
 	protected ArrayList<BusStopJSONObject> list = new ArrayList<BusStopJSONObject>();
 	protected BaseAdapter adapter;
@@ -49,10 +58,14 @@ public class BusStopListFragment extends ListFragment implements UserRefreshInte
 	private CompassHandler compassHandler = new CompassHandler();
 	private final LocationHandler locationHandler = new LocationHandler();
 	private boolean returnClosest = false;
+	private Sort sort = Sort.DISTANCE;
+	
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		
+		setHasOptionsMenu(true);
 		
 		adapter = new BusStopAdapter(getActivity(), list);
 		this.setListAdapter(adapter);
@@ -74,16 +87,47 @@ public class BusStopListFragment extends ListFragment implements UserRefreshInte
 		sensors = (SensorManager) this.getActivity().getSystemService(Context.SENSOR_SERVICE);
 	}
 
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		MenuInflater menuInflater = getActivity().getMenuInflater();
+		menuInflater.inflate(R.menu.busstoplist, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()){
+		case R.id.sort:
+    		int index = (sort.ordinal() + 1) % Sort.values().length;
+    		sort = Sort.values()[index];
+    		setSortItemName(item, sort);
+    		sort();
+	    	
+			return true;
+		}
+		return false;
+	}
+
 	private void sort(){
 		Collections.sort(list, new Comparator<BusStopJSONObject>(){
 
 			@Override
 			public int compare(BusStopJSONObject arg0, BusStopJSONObject arg1) {
-				int out = (int) (arg0.distance - arg1.distance);
-				if(out == 0){
-					out = arg0.toString().compareTo(arg1.toString());
+				switch(sort){
+				case DISTANCE:
+					int out = (int) (arg0.distance - arg1.distance);
+					if(out == 0){
+						out = arg0.toString().compareTo(arg1.toString());
+					}
+					return out;
+				case NAME:
+					try {
+						return arg0.getString("Name").compareTo(arg1.getString("Name"));
+					} catch (JSONException e) {
+						return 0;
+					}
+				default:
+					return 0;
 				}
-				return out;
 			}
         	
         });
@@ -113,7 +157,7 @@ public class BusStopListFragment extends ListFragment implements UserRefreshInte
 					SensorManager.SENSOR_DELAY_NORMAL
 			);
 		}*/
-		locman.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 2500L, 0.01f, locationHandler);
+		locman.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 500L, 0.01f, locationHandler);
 		if(listenerId == -1){
 			listenerId = BusStopList.registerUpdateListener(new BusListListener(), true);
 		}
@@ -159,6 +203,34 @@ public class BusStopListFragment extends ListFragment implements UserRefreshInte
 		}
 	}
 	
+	public Sort getSort() {
+		return sort;
+	}
+
+	public void setSort(Sort sort) {
+		// XXX: This does not change the menu item.
+		// Where to find it?
+		this.sort = sort;
+		sort();
+	}
+	
+	private void setSortItemName(MenuItem item, Sort sort){
+		int title;
+		
+		switch(sort){
+		case DISTANCE:
+			title = R.string.sort_distance;
+			break;
+		case NAME:
+			title = R.string.sort_name;
+			break;
+		default:
+			title = R.string.sort_distance;
+		}
+		
+		item.setTitle(title);
+	}
+
 	private class LocationHandler implements LocationListener {
 		@Override
 		public void onProviderDisabled(String arg0) {}

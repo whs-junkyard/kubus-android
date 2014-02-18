@@ -3,6 +3,7 @@ package th.in.whs.ku.bus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import th.in.whs.ku.bus.BusStopListFragment.Sort;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,6 +12,9 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.Window;
 
 // XXX: ActionBarActivity does not work

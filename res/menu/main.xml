@@ -6,11 +6,6 @@
         support:showAsAction="ifRoom"
         android:title="@string/fanpage"
         android:icon="@drawable/ic_facebook"/>
-    
-    <item
-        android:id="@+id/refresh"
-        support:showAsAction="always"
-        android:title="@string/refresh" android:icon="@drawable/ic_menu_refresh"/>
     <item
         android:id="@+id/tagProgram"
         support:showAsAction="never"

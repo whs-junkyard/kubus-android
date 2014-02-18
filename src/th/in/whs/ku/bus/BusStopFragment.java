@@ -44,6 +44,7 @@ public class BusStopFragment extends Fragment implements StopSelectedInterface, 
 			ft.add(R.id.left, new BusStopListFragment(), "BusStopList");
 			ft.commit();
 		}
+		setHasOptionsMenu(true);
 	}
 
 	@Override

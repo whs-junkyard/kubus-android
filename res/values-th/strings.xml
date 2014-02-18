@@ -27,6 +27,8 @@
     <string name="notify_ok">โปรแกรมจะแจ้งเตือน 5 นาทีก่อนรถมา</string>
     <string name="notify_msg">%1$s (%2$s) จะจอดป้ายในอีก %3$d นาที</string>
     <string name="route_map">เส้นทาง</string>
+    <string name="sort_distance">เรียงตามระยะทาง</string>
+    <string name="sort_name">เรียงตามตัวอักษร</string>
     
     <!-- vote -->
     <string name="rate_title">โหวต KUSmartBus</string>

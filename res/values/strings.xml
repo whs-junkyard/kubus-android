@@ -27,6 +27,8 @@
     <string name="notify_ok">You\'ll be notified 5 minutes before next bus arrival.</string>
     <string name="notify_msg">%1$s (%2$s) will arrive in %3$d minutes</string>
     <string name="route_map">Route map</string>
+    <string name="sort_distance">Sort by distance</string>
+    <string name="sort_name">Sort by name</string>
     
     <!-- vote -->
     <string name="rate_title">Rate KUSmartBus</string>
