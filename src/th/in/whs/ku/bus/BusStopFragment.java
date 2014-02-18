@@ -18,7 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class BusStopFragment extends Fragment implements StopSelectedInterface, UserRefreshInterface {
+public class BusStopFragment extends Fragment implements StopSelectedInterface {
 	
 	/**
 	 * Used when asking stopSelected
@@ -88,18 +88,6 @@ public class BusStopFragment extends Fragment implements StopSelectedInterface, 
 			// I'm not sure why this happen...
 			// http://sentry.whs.in.th/kusmartbus/android/group/131/
 			Sentry.captureException(e, Sentry.SentryEventBuilder.SentryEventLevel.WARNING);
-		}
-	}
-
-	@Override
-	public void onRefresh() {
-		UserRefreshInterface leftFragment = (UserRefreshInterface) getChildFragmentManager().findFragmentById(R.id.left);
-		if(leftFragment != null){
-			leftFragment.onRefresh();
-		}
-		UserRefreshInterface rightFragment = (UserRefreshInterface) getChildFragmentManager().findFragmentById(R.id.right);
-		if(rightFragment != null){
-			rightFragment.onRefresh();
 		}
 	}
 

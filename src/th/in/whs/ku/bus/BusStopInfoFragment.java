@@ -20,6 +20,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -38,7 +41,7 @@ import com.loopj.android.http.RequestParams;
 
 import de.ankri.views.AutoScaleTextView;
 
-public class BusStopInfoFragment extends Fragment implements UserRefreshInterface {
+public class BusStopInfoFragment extends Fragment {
 	
 	/**
 	 * Duration which autorefresh() will be fired
@@ -92,6 +95,9 @@ public class BusStopInfoFragment extends Fragment implements UserRefreshInterfac
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
+		
+		setHasOptionsMenu(true);
+		
 		try {
 			// prepare the list
 			adapter = new BusStopAdapter(getActivity());
@@ -297,7 +303,22 @@ public class BusStopInfoFragment extends Fragment implements UserRefreshInterfac
 	}
 	
 	@Override
-	public void onRefresh() {
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		MenuInflater menuInflater = getActivity().getMenuInflater();
+		menuInflater.inflate(R.menu.refresh, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()){
+		case R.id.refresh:
+			refresh();
+			return true;
+		}
+		return false;
+	}
+	
+	public void refresh() {
 		adapter.clear();
 		setShowProgress(true);
 		try {

@@ -39,7 +39,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BusStopListFragment extends ListFragment implements UserRefreshInterface {
+public class BusStopListFragment extends ListFragment {
 	
 	public static enum Sort {
 		NAME,
@@ -90,6 +90,7 @@ public class BusStopListFragment extends ListFragment implements UserRefreshInte
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		MenuInflater menuInflater = getActivity().getMenuInflater();
+		menuInflater.inflate(R.menu.refresh, menu);
 		menuInflater.inflate(R.menu.busstoplist, menu);
 	}
 
@@ -102,6 +103,9 @@ public class BusStopListFragment extends ListFragment implements UserRefreshInte
     		setSortItemName(item, sort);
     		sort();
 	    	
+			return true;
+		case R.id.refresh:
+			refresh();
 			return true;
 		}
 		return false;
@@ -137,8 +141,7 @@ public class BusStopListFragment extends ListFragment implements UserRefreshInte
 		adapter.notifyDataSetChanged();
 	}
 	
-	@Override
-	public void onRefresh() {
+	public void refresh(){
 		BusStopList.refresh();
 		setListShown(false);
 	}

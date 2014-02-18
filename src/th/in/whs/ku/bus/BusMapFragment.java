@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import th.in.whs.ku.bus.BusStopListFragment.Sort;
 import th.in.whs.ku.bus.api.BusPosition;
 import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.api.ListenerList;
@@ -14,6 +15,9 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -26,7 +30,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 
-public class BusMapFragment extends Fragment implements UserRefreshInterface, OnItemSelectedListener {
+public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 	
 	private MapView mapView;
 	private GoogleMap map;
@@ -43,6 +47,8 @@ public class BusMapFragment extends Fragment implements UserRefreshInterface, On
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState){
 		super.onActivityCreated(savedInstanceState);
+		
+		setHasOptionsMenu(true);
 		
 		Spinner linePicker = (Spinner) getView().findViewById(R.id.linePicker);
 		adapter = new BusStopAdapter(getActivity());
@@ -64,6 +70,22 @@ public class BusMapFragment extends Fragment implements UserRefreshInterface, On
 		mapController = new BusMapController(getActivity(), map);
 		
 		mapController.registerListener();
+	}
+	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		MenuInflater menuInflater = getActivity().getMenuInflater();
+		menuInflater.inflate(R.menu.refresh, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()){
+		case R.id.refresh:
+			refresh();
+			return true;
+		}
+		return false;
 	}
 	
 	@Override
@@ -111,8 +133,7 @@ public class BusMapFragment extends Fragment implements UserRefreshInterface, On
 		}
 	}
 	
-	@Override
-	public void onRefresh() {
+	public void refresh() {
 		getView().findViewById(R.id.progress).setVisibility(View.VISIBLE);
 		BusPosition.refresh();
 	}

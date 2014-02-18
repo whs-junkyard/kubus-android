@@ -180,7 +180,6 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
 	public boolean onCreateOptionsMenu(Menu menu) {
     	MenuInflater inflater = getMenuInflater();
     	inflater.inflate(R.menu.main, menu);
-    	menu.findItem(R.id.refresh).setVisible(canRefresh);
     	menu.findItem(R.id.tagProgram).setVisible(BuildConfig.DEBUG && USE_NFC_PROGRAM);
 		return true;
 	}
@@ -188,15 +187,6 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch (item.getItemId()) {
-    	case R.id.refresh:
-    		Fragment page = getSupportFragmentManager().findFragmentById(android.R.id.content);
-    		if(page != null && page instanceof UserRefreshInterface){
-    			UserRefreshInterface refresher = (UserRefreshInterface) page;
-    			refresher.onRefresh();
-    			return true;
-    		}else{
-    			return false;
-    		}
     	case R.id.facebook:
     		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("fb://page/"+getString(R.string.fb_page_id)));
     		if(getPackageManager().resolveActivity(intent, 0) == null){
@@ -467,8 +457,6 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
 				showBusStopOnTab = null;
 			}
 			currentFragment = fragment;
-			canRefresh = fragment instanceof UserRefreshInterface;
-			supportInvalidateOptionsMenu();
 		}
 
 		@Override
