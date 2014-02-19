@@ -261,6 +261,7 @@ public class BusStopInfoFragment extends Fragment {
 		if(mapView != null){
 			mapView.onLowMemory();
 		}
+		mapController.onLowMemory();
 	}
 	
 	@Override

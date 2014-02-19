@@ -103,6 +103,7 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 		if(mapView != null){
 			mapView.onLowMemory();
 		}
+		mapController.onLowMemory();
 	}
 	
 	@Override

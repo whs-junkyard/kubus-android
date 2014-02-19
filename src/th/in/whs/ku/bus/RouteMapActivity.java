@@ -74,6 +74,12 @@ public class RouteMapActivity extends ActionBarActivity {
 			controller.unregisterListener();
 		}
 	}
+
+	@Override
+	public void onLowMemory() {
+		super.onLowMemory();
+		controller.onLowMemory();
+	}
 	
 	
 }

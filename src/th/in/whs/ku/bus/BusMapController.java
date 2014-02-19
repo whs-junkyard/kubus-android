@@ -13,8 +13,8 @@ import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.api.ListenerList;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
-import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -29,7 +29,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.joshdholtz.sentry.Sentry;
 
 /**
  * Bus map controller for using with Google Maps Android v2
@@ -83,6 +82,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	 * Array of bus stop markers
 	 */
 	private ArrayList<StopMarker> stopMarker = new ArrayList<StopMarker>();
+	private ArrayList<Marker> directionMarker = new ArrayList<Marker>();
 	/**
 	 * How the polyline become visible
 	 * 0: no (no call yet)
@@ -243,6 +243,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	}
 	
 	public void drawPolyline(String lineId, String from, String to){
+		polylineRequestedByUser = 1;
 		_drawPolyline(String.valueOf(lineId), from, to);
 	}
 	
@@ -344,8 +345,11 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 				return;
 			}
 			
-			float[] lastItem = toFloat(line.getString(0).split(","));
+			float[] initialItem = toFloat(line.getString(0).split(","));
+			float lastBearing = Float.MIN_VALUE;
+			LatLng lastItem = new LatLng(initialItem[0], initialItem[1]);
 			PolylineOptions pol = new PolylineOptions().width(5).color(color);
+			BitmapDescriptor directionIcon = getDirectionIcon(lineId);
 			
 			for(int loop=0; loop<2; loop++){
 				for(int i=1; i<line.length(); i++){
@@ -368,14 +372,33 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 						item[0] += 0.000001;
 					}
 					
-					pol.add(new LatLng(lastItem[0], lastItem[1]), new LatLng(item[0], item[1]));
+					LatLng latlng = new LatLng(item[0], item[1]);
+					
+					pol.add(lastItem, latlng);
+					
+					// we don't use distance, only bearing
+					float[] distance = new float[2];
+					Location.distanceBetween(lastItem.latitude, lastItem.longitude, latlng.latitude, latlng.longitude, distance);
+					float bearing = distance[1] - 90;
+					
+					if(Math.abs(bearing - lastBearing) > 30 && distance[0] > 20){
+						MarkerOptions marker = new MarkerOptions();
+						marker.position(lastItem).anchor(0.5f, 0.5f)
+							.flat(true)
+							.rotation(bearing)
+							.icon(directionIcon);
+						directionMarker.add(map.addMarker(marker));
+					}
+					
+					lastBearing = bearing;
+					
 					
 					/*if(item[0] == endStop[0] && item[1] == endStop[1]){
 						foundStop = true;
 						break;
 					}*/
 					
-					lastItem = item;
+					lastItem = latlng;
 				}
 				if(toStop == null || foundStop){
 					break;
@@ -418,10 +441,39 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			mark.marker.remove();
 		}
 		stopMarker.clear();
+		for(Marker mark : directionMarker){
+			mark.remove();
+		}
+		directionMarker.clear();
 	}
 	
 	public Marker get(int id){
 		return markers.get(id).marker;
+	}
+	
+	private HashMap<String, BitmapDescriptor> directionIconCache = new HashMap<String, BitmapDescriptor>();
+	
+	/**
+	 * Get a stop icon (or cached one) for use in map
+	 * @param lineId Line ID
+	 * @return BitmapDescriptor
+	 */
+	public BitmapDescriptor getDirectionIcon(String lineId){
+		BitmapDescriptor out = directionIconCache.get(lineId);
+		if(out != null){
+			return out;
+		}
+		out = getNewDirectionIcon(lineId);
+		directionIconCache.put(lineId, out);
+		return out;
+	}
+	
+	private BitmapDescriptor getNewDirectionIcon(String lineId) {
+		BitmapDrawable drawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.chevron);		
+		int color = getColor(Integer.parseInt(lineId));
+		drawable.setColorFilter(color, android.graphics.PorterDuff.Mode.MULTIPLY);
+		
+		return BitmapDescriptorFactory.fromBitmap(drawable.getBitmap());
 	}
 	
 	private SparseArray<BitmapDescriptor> busIconCache = new SparseArray<BitmapDescriptor>();
@@ -551,6 +603,15 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	 */
 	public void onPause(){
 		BusPosition.wsDisconnect();
+	}
+	
+	/**
+	 * Call this in your onLowMemory
+	 */
+	public void onLowMemory(){
+		directionIconCache.clear();
+		busIconCache.clear();
+		stopIconCache.clear();
 	}
 	
 	@Override
