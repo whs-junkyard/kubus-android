@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,7 +20,7 @@ import android.view.Window;
 
 // XXX: ActionBarActivity does not work
 // see https://code.google.com/p/android/issues/detail?id=61025
-public class BusStopListActivity extends FragmentActivity implements StopSelectedInterface {
+public class BusStopListActivity extends ActionBarActivity implements StopSelectedInterface {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
