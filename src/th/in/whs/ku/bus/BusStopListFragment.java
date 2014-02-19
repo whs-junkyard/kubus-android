@@ -89,11 +89,6 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		if(args != null){
 			returnClosest = args.getBoolean("returnClosest");
 		}
-		if(returnClosest){
-			if(BusStopList.data() == null){
-				stopSelected(0);
-			}
-		}
 		
 		locman = (LocationManager) this.getActivity().getSystemService(Context.LOCATION_SERVICE);
 		inflater = (LayoutInflater) this.getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -153,10 +148,10 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 			}
         	
         });
+		adapter.notifyDataSetChanged();
 		if(returnClosest){
 			stopSelected(0);
 		}
-		adapter.notifyDataSetChanged();
 	}
 	
 	public void refresh(){
@@ -226,7 +221,7 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		if(list.size() <= index){
 			parent.stopSelected(null);
 		}else{
-			parent.stopSelected(list.get(index));
+			parent.stopSelected(adapter.getItem(index));
 		}
 	}
 	
