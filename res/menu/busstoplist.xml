@@ -3,6 +3,8 @@
     xmlns:support="http://schemas.android.com/apk/res-auto" >
     
     <item android:id="@+id/sort" android:title="@string/sort_distance"
-        support:showAsAction="always|withText" />
+        support:showAsAction="ifRoom|withText"
+        android:menuCategory="secondary"
+        android:orderInCategory="30" />
 
 </menu>

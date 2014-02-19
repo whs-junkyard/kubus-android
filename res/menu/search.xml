@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:support="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/search"
+          android:title="@android:string/search_go"
+          android:icon="@android:drawable/ic_menu_search"
+          support:showAsAction="collapseActionView|ifRoom"
+          support:actionViewClass="android.support.v7.widget.SearchView"
+          android:menuCategory="alternative"
+          android:orderInCategory="50" />
+</menu>

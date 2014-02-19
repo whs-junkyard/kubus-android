@@ -5,10 +5,14 @@
         android:id="@+id/facebook"
         support:showAsAction="ifRoom"
         android:title="@string/fanpage"
+        android:menuCategory="container"
+        android:orderInCategory="1000"
         android:icon="@drawable/ic_facebook"/>
     <item
         android:id="@+id/tagProgram"
         support:showAsAction="never"
+        android:menuCategory="container"
+        android:orderInCategory="2000"
         android:title="@string/nfc_prog" android:icon="@android:drawable/ic_menu_upload"/>
 
 </menu>

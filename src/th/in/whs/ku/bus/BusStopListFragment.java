@@ -12,6 +12,8 @@ import org.json.JSONObject;
 
 import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.api.ListenerList;
+import th.in.whs.ku.bus.widget.FullTextSearchListAdapter;
+import th.in.whs.ku.bus.widget.FullTextSearchListAdapter.SearchableItem;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.Sensor;
@@ -24,8 +26,11 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.SearchView.OnCloseListener;
+import android.support.v7.widget.SearchView.OnQueryTextListener;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -34,20 +39,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
+import android.widget.Filter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BusStopListFragment extends ListFragment {
+public class BusStopListFragment extends ListFragment implements OnQueryTextListener, OnCloseListener {
 	
 	public static enum Sort {
 		NAME,
 		DISTANCE
 	};
 	
-	protected ArrayList<BusStopJSONObject> list = new ArrayList<BusStopJSONObject>();
-	protected BaseAdapter adapter;
+	protected List<BusStopJSONObject> list = new ArrayList<BusStopJSONObject>();
+	protected ArrayAdapter<BusStopJSONObject> adapter;
 	private int listenerId = -1;
 	private int errorListenerId = -1;
 	private int progressListenerId = -1;
@@ -60,6 +65,14 @@ public class BusStopListFragment extends ListFragment {
 	private boolean returnClosest = false;
 	private Sort sort = Sort.DISTANCE;
 	
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		if(savedInstanceState != null){
+			this.sort = Sort.valueOf(savedInstanceState.getString("sort"));
+		}
+	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -90,8 +103,13 @@ public class BusStopListFragment extends ListFragment {
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		MenuInflater menuInflater = getActivity().getMenuInflater();
+		menuInflater.inflate(R.menu.search, menu);
 		menuInflater.inflate(R.menu.refresh, menu);
 		menuInflater.inflate(R.menu.busstoplist, menu);
+		setSortItemName(menu.findItem(R.id.sort), this.sort);
+		SearchView search = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.search));
+		search.setOnQueryTextListener(this);
+		search.setOnCloseListener(this);
 	}
 
 	@Override
@@ -190,6 +208,12 @@ public class BusStopListFragment extends ListFragment {
 		}
 	}
 	
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putString("sort", this.sort.toString());
+	}
+
 	public void onListItemClick(ListView l, View v, int position, long id){		
 		stopSelected(position);
 	}
@@ -266,7 +290,7 @@ public class BusStopListFragment extends ListFragment {
 		}
 	}
 
-	private static class BusStopJSONObject extends JSONObject implements Parcelable{
+	private static class BusStopJSONObject extends JSONObject implements Parcelable, SearchableItem{
 		public float distance = -1f;
 		/**
 		 * Bearing from GPS
@@ -313,15 +337,23 @@ public class BusStopListFragment extends ListFragment {
 				return new BusStopJSONObject[size];
 			}
 		};
+		@Override
+		public String getSearchString() {
+			try {
+				return this.getString("Name");
+			} catch (JSONException e) {
+				return "";
+			}
+		}
 	}
 	
-	private class BusStopAdapter extends ArrayAdapter<BusStopJSONObject>{
+	private class BusStopAdapter extends FullTextSearchListAdapter<BusStopJSONObject>{
 
 		public BusStopAdapter(Context context,
 				List<BusStopJSONObject> objects) {
 			super(context, R.layout.busstop_row, objects);
 		}
-		
+
 		@TargetApi(11)
 		public View getView(int position, View convertView, ViewGroup parent){
 			View vi=convertView;
@@ -472,5 +504,25 @@ public class BusStopListFragment extends ListFragment {
 			setEmptyText(getString(R.string.internet_error));
 		}
 	
+	}
+
+	@Override
+	public boolean onQueryTextChange(String query) {
+		adapter.getFilter().filter(query);
+		return true;
+	}
+
+	@Override
+	public boolean onQueryTextSubmit(String query) {
+		return false;
+	}
+
+	/**
+	 * On search menu close
+	 */
+	@Override
+	public boolean onClose() {
+		adapter.getFilter().filter("");
+		return true;
 	}
 }

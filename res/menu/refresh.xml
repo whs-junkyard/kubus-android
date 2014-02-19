@@ -4,7 +4,9 @@
 
     <item
         android:id="@+id/refresh"
-        support:showAsAction="always"
-        android:title="@string/refresh" android:icon="@drawable/ic_menu_refresh"/>
+        support:showAsAction="ifRoom"
+        android:title="@string/refresh" android:icon="@drawable/ic_menu_refresh"
+        android:menuCategory="secondary"
+        android:orderInCategory="50"/>
 
 </menu>
