@@ -469,11 +469,20 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	}
 	
 	private BitmapDescriptor getNewDirectionIcon(String lineId) {
-		BitmapDrawable drawable = (BitmapDrawable) context.getResources().getDrawable(R.drawable.chevron);		
-		int color = getColor(Integer.parseInt(lineId));
-		drawable.setColorFilter(color, android.graphics.PorterDuff.Mode.MULTIPLY);
-		
-		return BitmapDescriptorFactory.fromBitmap(drawable.getBitmap());
+		switch(Integer.parseInt(lineId)){
+		case 1:
+			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_red);
+		case 2:
+			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_blue);
+		case 3:
+			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_green);
+		case 4:
+			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_yellow);
+		case 5:
+			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_black);
+		default:
+			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_gray);
+		}
 	}
 	
 	private SparseArray<BitmapDescriptor> busIconCache = new SparseArray<BitmapDescriptor>();
