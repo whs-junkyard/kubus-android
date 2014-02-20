@@ -1,5 +1,8 @@
 package th.in.whs.ku.bus;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -12,18 +15,25 @@ import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.api.TimeAgo;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -38,8 +48,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
-
-import de.ankri.views.AutoScaleTextView;
 
 public class BusStopInfoFragment extends Fragment {
 	
@@ -61,6 +69,19 @@ public class BusStopInfoFragment extends Fragment {
 	private LayoutInflater inflater=null;
 	private Handler handler = new Handler();
 	private Autorefresher autorefresh = new Autorefresher();
+	private View headerView;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		// update the page title
+		Bundle args = this.getArguments();
+		try {
+			stopData = new JSONObject(args.getString("data"));
+		} catch (JSONException e) {
+		}
+	}
 
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -68,26 +89,9 @@ public class BusStopInfoFragment extends Fragment {
 		this.inflater = inflater;
 		View view = inflater.inflate(R.layout.stopinfo_fragment, container, false);
 		
-		// create the map
-		mapView = (MapView) view.findViewById(R.id.map);
-		mapView.onCreate(savedInstanceState);
-		
-		// create the map controller used to draw bus position
-		mapController = new BusMapController(getActivity(), mapView.getMap());
-		mapController.setFilterActive(true);
-		mapController.setAllowBusStopClick(false);
-		
 		list = (ListView) view.findViewById(R.id.busList);
-		
-		// update the page title
-		Bundle args = this.getArguments();
-		try {
-			stopData = new JSONObject(args.getString("data"));
-			String titleStr = stopData.getString("Name");
-			TextView title = (TextView) view.findViewById(R.id.title);
-			title.setText(titleStr);
-		} catch (JSONException e) {
-		}
+		headerView = inflater.inflate(R.layout.busstop_head_row, null, false);
+		list.addHeaderView(headerView);
 		
 		return view;
 	}
@@ -108,6 +112,9 @@ public class BusStopInfoFragment extends Fragment {
 				@Override
 				public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
 					BusStatus item = (BusStatus) list.getItemAtPosition(position);
+					if(item == null){
+						return;
+					}
 					Marker mark = mapController.get(item.id);
 					if(mark != null){
 						// show marker's bubble window and move camera to marker position
@@ -123,22 +130,25 @@ public class BusStopInfoFragment extends Fragment {
 				
 			});
 			
-			LatLng latlng = new LatLng(
-					stopData.getDouble("Latitude"),
-					stopData.getDouble("Longitude")
-			);
-			LatLng latlngView = new LatLng(
-					latlng.latitude + 0.001,
-					latlng.longitude
-			);
-			// move camera to bus stop
-			mapView.getMap().moveCamera(CameraUpdateFactory.newLatLng(latlngView));
-			// draw the bus stop marker
-			MarkerOptions marker = new MarkerOptions();
-			marker.position(latlng);
-			marker.title(stopData.getString("Name"));
-			Marker mark = mapView.getMap().addMarker(marker);
-			mark.showInfoWindow();
+			TextView title = (TextView) headerView.findViewById(R.id.title);
+			
+			// update the page title
+			String titleStr = stopData.getString("Name");
+			title.setText(titleStr);
+			title.setSelected(true);
+			
+			TextView routePassing = (TextView) headerView.findViewById(R.id.linePassing);
+			routePassing.setText(getRoutePassingFormatted());
+			
+			mapView = (MapView) headerView.findViewById(R.id.map);
+			mapView.onCreate(savedInstanceState);
+			
+			mapController = new BusMapController(getActivity(), mapView.getMap());
+			mapController.setFilterActive(true);
+			mapController.setAllowBusStopClick(false);
+			mapController.registerListener();
+			
+			onMapCreated();
 			
 			boolean downloadBus = true;
 			if(savedInstanceState != null){
@@ -164,9 +174,33 @@ public class BusStopInfoFragment extends Fragment {
 			return;
 		}
 		
-		mapController.registerListener();
-		
 		startTimeupdate();
+	}
+	
+	private void onMapCreated(){
+		try {
+			LatLng latlng = new LatLng(
+					stopData.getDouble("Latitude"),
+					stopData.getDouble("Longitude")
+			);
+		
+			LatLng latlngView = new LatLng(
+					latlng.latitude + 0.001,
+					latlng.longitude
+			);
+			
+			// move camera to bus stop
+			mapView.getMap().moveCamera(CameraUpdateFactory.newLatLng(latlngView));
+			mapView.getMap().setPadding(0, 0, 0, 90);
+			// draw the bus stop marker
+			MarkerOptions marker = new MarkerOptions();
+			marker.position(latlng);
+			marker.title(stopData.getString("Name"));
+			Marker mark = mapView.getMap().addMarker(marker);
+			mark.showInfoWindow();
+		} catch (JSONException e) {
+			return;
+		}
 	}
 
 	/**
@@ -261,7 +295,9 @@ public class BusStopInfoFragment extends Fragment {
 		if(mapView != null){
 			mapView.onLowMemory();
 		}
-		mapController.onLowMemory();
+		if(mapController != null){
+			mapController.onLowMemory();
+		}
 	}
 	
 	@Override
@@ -328,6 +364,30 @@ public class BusStopInfoFragment extends Fragment {
 		}
 	}
 
+	private CharSequence getRoutePassingFormatted() {
+		String prefix = getString(R.string.line_passing) + " ";
+		SpannableStringBuilder out = new SpannableStringBuilder(prefix);
+		
+		List<String> passingLines;
+		try {
+			passingLines = BusStopList.getPassingLine(stopData.getString("ID"), stopData.getString("ID"));
+		} catch (JSONException e) {
+			return prefix + getString(R.string.json_error);
+		}
+		
+		Collections.sort(passingLines);
+		
+		for(String line : passingLines){
+			int lengthStart = out.length()+1;
+			out.append("  " + line + "  ");
+			int lengthStop = out.length()-1;
+			out.setSpan(new BackgroundColorSpan(getResources().getColor(BusMapController.getColor(Integer.valueOf(line)))), lengthStart, lengthStop, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+			out.setSpan(new ForegroundColorSpan(Color.WHITE), lengthStart, lengthStop, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+		}
+		
+		return out;
+	}
+
 	/**
 	 * Timer to update duration until bus arrive in the view
 	 */
@@ -391,11 +451,12 @@ public class BusStopInfoFragment extends Fragment {
 		public BusStopAdapter(Context context) {
 			super(context, R.layout.busline_row);
 		}
+
 		@SuppressWarnings("deprecation")
 		@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 		public View getView(int position, View convertView, ViewGroup parent){
-			View vi=convertView;
-			if(convertView==null){
+			View vi = convertView;
+			if(convertView == null){
 				vi = inflater.inflate(R.layout.busline_row, null);
 			}
 			BusStatus data = this.getItem(position);

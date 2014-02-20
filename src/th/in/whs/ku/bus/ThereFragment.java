@@ -3,11 +3,11 @@ package th.in.whs.ku.bus;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import th.in.whs.ku.bus.api.API;
 import th.in.whs.ku.bus.api.Bus;
@@ -15,10 +15,8 @@ import th.in.whs.ku.bus.api.BusStatus;
 import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.api.TimeAgo;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
@@ -38,7 +36,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.internal.bu;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -91,7 +88,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 				notifyBtn.setEnabled(false);
 				RequestParams params = new RequestParams();
 				params.add("stop", dest[0]);
-				ArrayList<String> passing = getPassingLine(dest[0], dest[1]);
+				List<String> passing = BusStopList.getPassingLine(dest[0], dest[1]);
 				for(String lineId : passing){
 					params.add("line[]", lineId);
 				}
@@ -353,7 +350,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 		setShowProgress(true);
 
 		TextView passing = (TextView) getView().findViewById(R.id.busLine);
-		ArrayList<String> passingLines = getPassingLine(dest[0], dest[1]);
+		List<String> passingLines = BusStopList.getPassingLine(dest[0], dest[1]);
 		getView().findViewById(R.id.notifyBtn).setEnabled(passingLines.size() > 0);
 		if (passingLines.size() == 0) {
 			passing.setText(R.string.no_bus);
@@ -461,44 +458,6 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 		} else {
 			noBus.setVisibility(View.GONE);
 		}
-	}
-
-	private ArrayList<String> getPassingLine(String from, String to) {
-		ArrayList<String> out = new ArrayList<String>();
-
-		try {
-			JSONObject stopData = BusStopList.data();
-			if (stopData == null) {
-				return out;
-			}
-			JSONObject stopOrder = stopData.getJSONObject("StopOrder");
-			Iterator iterator = stopOrder.keys();
-			while (iterator.hasNext()) {
-				String lineId = (String) iterator.next();
-				JSONArray stopList = stopOrder.getJSONArray(lineId);
-				int length = stopList.length();
-				int hasStop = 0;
-				for (int i = 0; i < length; i++) {
-					String currentStop = stopList.getString(i);
-					if(from.equals(to) && currentStop.equals(from)){
-						hasStop = 3;
-					}else if (hasStop != 1 && currentStop.equals(from)) {
-						hasStop += 1;
-					} else if (hasStop != 2 && currentStop.equals(to)) {
-						hasStop += 2;
-					}
-					if (hasStop == 3) {
-						break;
-					}
-				}
-				if (hasStop == 3) {
-					out.add(lineId);
-				}
-			}
-		} catch (JSONException e) {
-		}
-
-		return out;
 	}
 
 	private void openStopList(int type) {

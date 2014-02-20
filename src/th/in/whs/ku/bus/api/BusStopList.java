@@ -1,6 +1,11 @@
 package th.in.whs.ku.bus.api;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.http.Header;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -75,6 +80,51 @@ public class BusStopList implements Parcelable, Cloneable {
 	}
 	public static JSONObject data(){
 		return instance.getData();
+	}
+	
+	/**
+	 * Find bus passing stops
+	 * Set from = to for finding bus passing a bus stop.
+	 * @param fro
+	 * @param to
+	 * @return List of bus line id passing a stop
+	 */
+	public static List<String> getPassingLine(String from, String to) {
+		ArrayList<String> out = new ArrayList<String>();
+
+		try {
+			JSONObject stopData = data();
+			if (stopData == null) {
+				return out;
+			}
+			JSONObject stopOrder = stopData.getJSONObject("StopOrder");
+			Iterator iterator = stopOrder.keys();
+			while (iterator.hasNext()) {
+				String lineId = (String) iterator.next();
+				JSONArray stopList = stopOrder.getJSONArray(lineId);
+				int length = stopList.length();
+				int hasStop = 0;
+				for (int i = 0; i < length; i++) {
+					String currentStop = stopList.getString(i);
+					if(from.equals(to) && currentStop.equals(from)){
+						hasStop = 3;
+					}else if (hasStop != 1 && currentStop.equals(from)) {
+						hasStop += 1;
+					} else if (hasStop != 2 && currentStop.equals(to)) {
+						hasStop += 2;
+					}
+					if (hasStop == 3) {
+						break;
+					}
+				}
+				if (hasStop == 3) {
+					out.add(lineId);
+				}
+			}
+		} catch (JSONException e) {
+		}
+
+		return out;
 	}
 
 	// object
