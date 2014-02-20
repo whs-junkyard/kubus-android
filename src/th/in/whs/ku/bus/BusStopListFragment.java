@@ -156,6 +156,7 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 	
 	public void refresh(){
 		BusStopList.refresh();
+		this.setEmptyText(getString(R.string.loading));
 		setListShown(false);
 	}
 	
@@ -419,6 +420,7 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 			JSONObject data = BusStopList.data();
         	boolean displayedError = false;
         	setListShown(true);
+        	setEmptyText("");
         	
         	if(data == null){
         		setEmptyText(getString(R.string.internet_error));

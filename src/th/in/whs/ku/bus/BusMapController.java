@@ -381,7 +381,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 					Location.distanceBetween(lastItem.latitude, lastItem.longitude, latlng.latitude, latlng.longitude, distance);
 					float bearing = distance[1] - 90;
 					
-					if(Math.abs(bearing - lastBearing) > 30 && distance[0] > 20){
+					if(Math.abs(bearing - lastBearing) > 20){
 						MarkerOptions marker = new MarkerOptions();
 						marker.position(lastItem).anchor(0.5f, 0.5f)
 							.flat(true)
