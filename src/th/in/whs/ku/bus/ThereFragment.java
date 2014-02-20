@@ -38,6 +38,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.internal.bu;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -425,6 +426,9 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 		for (int i = 0; i < length; i++) {
 			try {
 				BusStatus bus = new BusStatus(data[1].getJSONObject(i));
+				if(bus.getBus() != null && bus.getBus().isinpark){
+					continue;
+				}
 				busId.add(bus.id);
 			} catch (JSONException e) {
 			}
