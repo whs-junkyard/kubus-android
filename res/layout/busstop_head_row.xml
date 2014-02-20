@@ -1,60 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/FrameLayout1"
+    android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
     android:layout_height="180dp" >
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/map"
-    	android:layout_width="match_parent"
-    	android:layout_height="180dp"
-    	map:cameraTargetLat="13.848914"
-	    map:cameraTargetLng="100.572238"
-	    map:cameraZoom="16"
-	    map:uiZoomControls="false"
-	    map:cameraTilt="45"
-	    map:uiCompass="false"
-	    map:uiRotateGestures="false"
-	    map:uiScrollGestures="false"
-	    map:uiTiltGestures="false"
-	    map:uiZoomGestures="false" />
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        map:cameraTargetLat="13.848914"
+        map:cameraTargetLng="100.572238"
+        map:cameraTilt="45"
+        map:cameraZoom="16"
+        map:uiCompass="false"
+        map:uiRotateGestures="false"
+        map:uiScrollGestures="false"
+        map:uiTiltGestures="false"
+        map:uiZoomControls="false"
+        map:uiZoomGestures="false" >
+
+    </com.google.android.gms.maps.MapView>
 
     <View
+        android:id="@+id/View1"
         android:layout_width="match_parent"
         android:layout_height="103dp"
-        android:layout_gravity="bottom"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
         android:background="@drawable/scrim" />
 
     <LinearLayout
+        android:id="@+id/LinearLayout1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="5dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:gravity="bottom"
+        android:paddingBottom="10dp"
         android:orientation="vertical" >
 
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/no_stop"
-            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:ellipsize="marquee"
+            android:scrollHorizontally="true"
             android:shadowColor="@android:color/white"
             android:shadowDx="0"
             android:shadowDy="2"
             android:shadowRadius="1"
             android:singleLine="true"
-            android:ellipsize="marquee"
-            android:scrollHorizontally="true" />
+            android:text="@string/no_stop"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView
             android:id="@+id/linePassing"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/line_passing" />
-
     </LinearLayout>
 
-</FrameLayout>
+</RelativeLayout>

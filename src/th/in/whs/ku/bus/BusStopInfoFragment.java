@@ -13,6 +13,7 @@ import th.in.whs.ku.bus.api.Bus;
 import th.in.whs.ku.bus.api.BusStatus;
 import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.api.TimeAgo;
+import th.in.whs.ku.bus.widget.RoutePassingFormatter;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
@@ -138,7 +139,14 @@ public class BusStopInfoFragment extends Fragment {
 			title.setSelected(true);
 			
 			TextView routePassing = (TextView) headerView.findViewById(R.id.linePassing);
-			routePassing.setText(getRoutePassingFormatted());
+			
+			List<String> passingLines;
+			try {
+				passingLines = BusStopList.getPassingLine(stopData.getString("ID"), stopData.getString("ID"));
+				routePassing.setText(RoutePassingFormatter.getRoutePassingFormatted(getActivity(), passingLines));
+			} catch (JSONException e) {
+				routePassing.setText(getString(R.string.line_passing) + getString(R.string.json_error));
+			}
 			
 			mapView = (MapView) headerView.findViewById(R.id.map);
 			mapView.onCreate(savedInstanceState);
@@ -223,7 +231,6 @@ public class BusStopInfoFragment extends Fragment {
 				if(getActivity() == null){
 					return;
 				}
-				Log.d("BusStopInfoFragment", "onProgress "+bytesWritten+"/"+totalSize);
 				getActivity().setProgress((int) Math.ceil((bytesWritten/totalSize) * 10000));
 			}
 
@@ -362,30 +369,6 @@ public class BusStopInfoFragment extends Fragment {
 			loadInfo();
 		} catch (JSONException e) {
 		}
-	}
-
-	private CharSequence getRoutePassingFormatted() {
-		String prefix = getString(R.string.line_passing) + " ";
-		SpannableStringBuilder out = new SpannableStringBuilder(prefix);
-		
-		List<String> passingLines;
-		try {
-			passingLines = BusStopList.getPassingLine(stopData.getString("ID"), stopData.getString("ID"));
-		} catch (JSONException e) {
-			return prefix + getString(R.string.json_error);
-		}
-		
-		Collections.sort(passingLines);
-		
-		for(String line : passingLines){
-			int lengthStart = out.length()+1;
-			out.append("  " + line + "  ");
-			int lengthStop = out.length()-1;
-			out.setSpan(new BackgroundColorSpan(getResources().getColor(BusMapController.getColor(Integer.valueOf(line)))), lengthStart, lengthStop, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-			out.setSpan(new ForegroundColorSpan(Color.WHITE), lengthStart, lengthStop, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-		}
-		
-		return out;
 	}
 
 	/**

@@ -57,6 +57,10 @@
             android:label="@string/select_stop">
         </activity>
         <activity
+            android:name=".BusStopListGBActivity"
+            android:label="@string/select_stop">
+        </activity>
+        <activity
             android:name=".UriHandlerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

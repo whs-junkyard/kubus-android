@@ -97,6 +97,9 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		if(getActivity() == null){
+			return;
+		}
 		MenuInflater menuInflater = getActivity().getMenuInflater();
 		menuInflater.inflate(R.menu.search, menu);
 		menuInflater.inflate(R.menu.refresh, menu);

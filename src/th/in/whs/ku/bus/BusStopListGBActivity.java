@@ -18,24 +18,16 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.Window;
 
-public class BusStopListActivity extends ActionBarActivity implements StopSelectedInterface {
-	
-	/**
-	 * Return the class to open bus stop list
-	 * Gingerbread's ActionBarActivity is broken
-	 * @return Activity class
-	 */
-	public static Class<?> getCompatClass(){
-		if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1){
-			return BusStopListGBActivity.class;
-		}else{
-			return BusStopListActivity.class;
-		}
-	}
+/**
+ * Clone of BusStopListActivity with ActionBar disabled
+ * https://code.google.com/p/android/issues/detail?id=61025
+ */
+public class BusStopListGBActivity extends FragmentActivity implements StopSelectedInterface {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.w("BusStopListGBActivity", "Using Gingerbread support version of activity");
 		overridePendingTransition(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom);
 		
 		Bundle bundle = new Bundle();

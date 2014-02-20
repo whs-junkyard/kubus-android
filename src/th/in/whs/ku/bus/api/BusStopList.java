@@ -82,6 +82,10 @@ public class BusStopList implements Parcelable, Cloneable {
 		return instance.getData();
 	}
 	
+	public static List<String> getPassingLine(String line){
+		return getPassingLine(line, line);
+	}
+	
 	/**
 	 * Find bus passing stops
 	 * Set from = to for finding bus passing a bus stop.
@@ -183,7 +187,6 @@ public class BusStopList implements Parcelable, Cloneable {
 
 			@Override
 			public void onProgress(int bytesWritten, int totalSize) {
-				Log.d("BusPosition API", "Onprogress fire");
 				Bundle data = new Bundle();
 				data.putFloat("progress", bytesWritten/totalSize);
 				data.putInt("bytesWritten", bytesWritten);

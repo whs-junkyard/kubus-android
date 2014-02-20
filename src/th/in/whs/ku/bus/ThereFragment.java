@@ -14,6 +14,7 @@ import th.in.whs.ku.bus.api.Bus;
 import th.in.whs.ku.bus.api.BusStatus;
 import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.api.TimeAgo;
+import th.in.whs.ku.bus.widget.RoutePassingFormatter;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -206,7 +207,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 		out.putStringArray("buttons", buttonTxt);
 		out.putParcelableArrayList("list", list);
 		if(getView() != null){
-			out.putString("lines", (String) ((TextView) getView()
+			out.putCharSequence("lines", ((TextView) getView()
 				.findViewById(R.id.busLine)).getText());
 			out.putBoolean("loading", getView().findViewById(R.id.progress).getVisibility() == View.VISIBLE);
 			out.putBoolean("canNotify", getView().findViewById(R.id.notifyBtn).isEnabled());
@@ -226,8 +227,8 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 		// these if for empty is from that
 		// onActivityResult is fired before onResume thus the label will be
 		// overwritten by the saved state
-		if(busLine.getText().equals("")){
-			busLine.setText(state.getString("lines"));
+		if(busLine.getText().equals(getString(R.string.line_passing))){
+			busLine.setText(state.getCharSequence("lines"));
 			getView().findViewById(R.id.notifyBtn).setEnabled(state.getBoolean("canNotify"));
 		}
 		
@@ -355,16 +356,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 		if (passingLines.size() == 0) {
 			passing.setText(R.string.no_bus);
 		} else {
-			Collections.sort(passingLines);
-			StringBuilder passingLinesText = new StringBuilder();
-			Iterator passingLinesIterator = passingLines.iterator();
-			while (passingLinesIterator.hasNext()) {
-				passingLinesText.append(passingLinesIterator.next());
-				if (passingLinesIterator.hasNext()) {
-					passingLinesText.append(", ");
-				}
-			}
-			passing.setText(passingLinesText);
+			passing.setText(RoutePassingFormatter.getRoutePassingFormatted(getActivity(), passingLines));
 		}
 	}
 
@@ -487,7 +479,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 
 	private void openStopList(int type, boolean returnClosest) {
 		selectingIndex = type;
-		Intent intent = new Intent(getActivity(), BusStopListActivity.class);
+		Intent intent = new Intent(getActivity(), BusStopListActivity.getCompatClass());
 		intent.putExtra("type", type);
 		intent.putExtra("returnClosest", returnClosest);
 		startActivityForResult(intent, SELECT_INTENT_CODE);

@@ -98,7 +98,7 @@ public class NFCProgramFragment extends Fragment implements NFCHandlerInterface 
 
 			@Override
 			public void onClick(View arg0) {
-				Intent intent = new Intent(getActivity(), BusStopListActivity.class);
+				Intent intent = new Intent(getActivity(), BusStopListActivity.getCompatClass());
 				startActivityForResult(intent, PICK_STOP_CODE);
 			}
 
