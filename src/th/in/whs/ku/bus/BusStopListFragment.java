@@ -100,14 +100,19 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		if(getActivity() == null){
 			return;
 		}
+		
 		MenuInflater menuInflater = getActivity().getMenuInflater();
 		menuInflater.inflate(R.menu.search, menu);
 		menuInflater.inflate(R.menu.refresh, menu);
 		menuInflater.inflate(R.menu.busstoplist, menu);
+		
 		setSortItemName(menu.findItem(R.id.sort), this.sort);
+		
 		SearchView search = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.search));
-		search.setOnQueryTextListener(this);
-		search.setOnCloseListener(this);
+		if(search != null){
+			search.setOnQueryTextListener(this);
+			search.setOnCloseListener(this);
+		}
 	}
 
 	@Override
