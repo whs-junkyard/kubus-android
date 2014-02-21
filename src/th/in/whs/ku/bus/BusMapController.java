@@ -11,6 +11,7 @@ import th.in.whs.ku.bus.api.Bus;
 import th.in.whs.ku.bus.api.BusPosition;
 import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.api.ListenerList;
+import th.in.whs.ku.bus.api.MemoryManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
@@ -262,17 +263,25 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		}
 		currentPolyline = lineId;
 		_clearPolyline();
+		
 		// somehow inlining this check still make race condition
 		// http://sentry.whs.in.th/kusmartbus/android/group/107/
 		JSONObject listRoot = BusStopList.data();
 		if(listRoot == null){
 			return;
 		}
+		
 		int color = context.getResources().getColor(getColor(Integer.valueOf(lineId)));
+		
 		double[] startStop = new double[2];
 		double[] endStop = new double[2];
 		boolean foundStart = fromStop == null;
 		boolean foundStop = toStop == null;
+		
+		// XXX: Sync read in main thread
+		double memory = MemoryManager.getTotalMemory();
+		Log.d("BusMapController", String.format("Memory installed %fMB", memory));
+		
 		// Draw stop marker
 		try{
 			JSONObject data = listRoot.getJSONObject("StopOrder");
@@ -349,7 +358,12 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			float lastBearing = Float.MIN_VALUE;
 			LatLng lastItem = new LatLng(initialItem[0], initialItem[1]);
 			PolylineOptions pol = new PolylineOptions().width(5).color(color);
-			BitmapDescriptor directionIcon = getDirectionIcon(lineId);
+			
+			// seems that drawing direction arrow is too much for low ram devices
+			BitmapDescriptor directionIcon = null;
+			if(memory > 512){
+				directionIcon = getDirectionIcon(lineId);
+			}
 			
 			for(int loop=0; loop<2; loop++){
 				for(int i=1; i<line.length(); i++){
@@ -376,21 +390,23 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 					
 					pol.add(lastItem, latlng);
 					
-					// we don't use distance, only bearing
-					float[] distance = new float[2];
-					Location.distanceBetween(lastItem.latitude, lastItem.longitude, latlng.latitude, latlng.longitude, distance);
-					float bearing = distance[1] - 90;
-					
-					if(Math.abs(bearing - lastBearing) > 20){
-						MarkerOptions marker = new MarkerOptions();
-						marker.position(lastItem).anchor(0.5f, 0.5f)
-							.flat(true)
-							.rotation(bearing)
-							.icon(directionIcon);
-						directionMarker.add(map.addMarker(marker));
+					if(directionIcon != null){
+						// we don't use distance, only bearing
+						float[] distance = new float[2];
+						Location.distanceBetween(lastItem.latitude, lastItem.longitude, latlng.latitude, latlng.longitude, distance);
+						float bearing = distance[1] - 90;
+						
+						if(Math.abs(bearing - lastBearing) > 20){
+							MarkerOptions marker = new MarkerOptions();
+							marker.position(lastItem).anchor(0.5f, 0.5f)
+								.flat(true)
+								.rotation(bearing)
+								.icon(directionIcon);
+							directionMarker.add(map.addMarker(marker));
+						}
+						
+						lastBearing = bearing;
 					}
-					
-					lastBearing = bearing;
 					
 					
 					/*if(item[0] == endStop[0] && item[1] == endStop[1]){
