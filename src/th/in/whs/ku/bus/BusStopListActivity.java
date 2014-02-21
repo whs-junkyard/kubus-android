@@ -42,7 +42,6 @@ public class BusStopListActivity extends ActionBarActivity implements StopSelect
 		
 		boolean closest = getIntent().getBooleanExtra("returnClosest", false);
 		if(closest){
-			this.setTheme(android.R.style.Theme_Translucent_NoTitleBar);
 			bundle.putBoolean("returnClosest", closest);
 		}
 		

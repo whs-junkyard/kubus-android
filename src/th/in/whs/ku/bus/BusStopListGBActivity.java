@@ -34,7 +34,6 @@ public class BusStopListGBActivity extends FragmentActivity implements StopSelec
 		
 		boolean closest = getIntent().getBooleanExtra("returnClosest", false);
 		if(closest){
-			this.setTheme(android.R.style.Theme_Translucent_NoTitleBar);
 			bundle.putBoolean("returnClosest", closest);
 		}
 		

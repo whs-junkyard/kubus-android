@@ -124,10 +124,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
         	return;
         }
         
-        try {
-			MapsInitializer.initialize(this);
-		} catch (GooglePlayServicesNotAvailableException e) {			
-		}
+        MapsInitializer.initialize(this);
         
         this.restoreBusPosition(savedInstanceState);
 		this.restoreBusList(savedInstanceState);
