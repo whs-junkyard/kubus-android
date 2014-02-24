@@ -3,12 +3,8 @@ package th.in.whs.ku.bus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.joshdholtz.sentry.Sentry;
-
 import th.in.whs.ku.bus.api.NFCBuilder;
-import android.content.Context;
 import android.net.Uri;
-import android.nfc.NdefMessage;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -17,6 +13,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.joshdholtz.sentry.Sentry;
 
 public class BusStopFragment extends Fragment implements StopSelectedInterface {
 	

@@ -16,13 +16,7 @@ import th.in.whs.ku.bus.widget.FullTextSearchListAdapter;
 import th.in.whs.ku.bus.widget.FullTextSearchListAdapter.SearchableItem;
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -33,19 +27,24 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.SearchView.OnCloseListener;
 import android.support.v7.widget.SearchView.OnQueryTextListener;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Filter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BusStopListFragment extends ListFragment implements OnQueryTextListener, OnCloseListener {
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+
+public class BusStopListFragment extends ListFragment implements OnQueryTextListener, OnCloseListener, 
+	LocationListener, GooglePlayServicesClient.ConnectionCallbacks
+{
 	
 	public static enum Sort {
 		NAME,
@@ -57,12 +56,7 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 	private int listenerId = -1;
 	private int errorListenerId = -1;
 	private int progressListenerId = -1;
-	private LocationManager locman;
-	private LayoutInflater inflater;
-	private SensorManager sensors;
-	private float compass = 0;
-	private CompassHandler compassHandler = new CompassHandler();
-	private final LocationHandler locationHandler = new LocationHandler();
+	private LocationClient locClient;
 	private boolean returnClosest = false;
 	private Sort sort = Sort.DISTANCE;
 	
@@ -73,6 +67,7 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		if(savedInstanceState != null){
 			this.sort = Sort.valueOf(savedInstanceState.getString("sort"));
 		}
+		locClient = new LocationClient(getActivity(), this, null);
 	}
 
 	@Override
@@ -90,10 +85,6 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		if(args != null){
 			returnClosest = args.getBoolean("returnClosest");
 		}
-		
-		locman = (LocationManager) this.getActivity().getSystemService(Context.LOCATION_SERVICE);
-		inflater = (LayoutInflater) this.getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		sensors = (SensorManager) this.getActivity().getSystemService(Context.SENSOR_SERVICE);
 	}
 
 	@Override
@@ -133,75 +124,16 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		return false;
 	}
 
-	private void sort(){
-		new AsyncTask<Void, Void, Void>(){
-
-			@Override
-			protected Void doInBackground(Void... arg0) {
-				sortSync();
-				return null;
-			}
-
-			@Override
-			protected void onPostExecute(Void result) {
-				adapter.notifyDataSetChanged();
-			}
-			
-			
-		}.execute();
-	}
-	
-	private void sortSync(){
-		synchronized (list) {
-			Collections.sort(list, new Comparator<BusStopJSONObject>(){
-
-				@Override
-				public int compare(BusStopJSONObject arg0, BusStopJSONObject arg1) {
-					switch(sort){
-					case DISTANCE:
-						int out = (int) (arg0.distance - arg1.distance);
-						if(out == 0){
-							out = arg0.toString().compareTo(arg1.toString());
-						}
-						return out;
-					case NAME:
-						try {
-							return arg0.getString("Name").compareTo(arg1.getString("Name"));
-						} catch (JSONException e) {
-							return 0;
-						}
-					default:
-						return 0;
-					}
-				}
-	        	
-	        });
-		}
-	}
-	
-	public void refresh(){
-		BusStopList.refresh();
-		this.setEmptyText(getString(R.string.loading));
-		setListShown(false);
+	@Override
+	public void onStart(){
+		super.onStart();
+		locClient.connect();
 	}
 	
 	public void onResume(){
 		super.onResume();
-		/*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && sensors.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null && sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null){
-			sensors.registerListener(
-					compasshandler,
-					sensors.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-					SensorManager.SENSOR_DELAY_NORMAL
-			);
-			sensors.registerListener(
-					compasshandler,
-					sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-					SensorManager.SENSOR_DELAY_NORMAL
-			);
-		}*/
-		locman.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 500L, 0.01f, locationHandler);
 		if(listenerId == -1){
-			listenerId = BusStopList.registerUpdateListener(new BusListListener(), true);
+			listenerId = BusStopList.registerUpdateListener(new BusListListener(), false);
 		}
 		if(errorListenerId == -1){
 			errorListenerId = BusStopList.registerErrorListener(new BusErrorListener(), true);
@@ -213,8 +145,6 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 	
 	public void onPause(){
 		super.onPause();
-		//sensors.unregisterListener(compasshandler);
-		locman.removeUpdates(locationHandler);
 		if(listenerId != -1){
 			BusStopList.removeUpdateListener(listenerId);
 			listenerId = -1;
@@ -285,46 +215,167 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		item.setTitle(title);
 	}
 
-	private class LocationHandler implements LocationListener {
-		@Override
-		public void onProviderDisabled(String arg0) {}
-
-		@Override
-		public void onProviderEnabled(String arg0) {}
-
-		@Override
-		public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
-
-		@Override
-		public void onLocationChanged(Location location) {
-			synchronized(list){
-				for(BusStopJSONObject stop : list){
-					float[] result = new float[2];
-					try {
-						Location.distanceBetween(
-								location.getLatitude(),
-								location.getLongitude(),
-								stop.getDouble("Latitude"),
-								stop.getDouble("Longitude"),
-								result
-						);
-					} catch (JSONException e) {
-						result[0] = -1f;
-					}
-					stop.distance = result[0];
-					stop.bearing = (result[1]+360)%360;
-				}
+	private void sort(){
+		new AsyncTask<Void, Void, Void>(){
+	
+			@Override
+			protected Void doInBackground(Void... arg0) {
+				sortSync();
+				return null;
 			}
-			sort();
+	
+			@Override
+			protected void onPostExecute(Void result) {
+				adapter.notifyDataSetChanged();
+			}
+			
+			
+		}.execute();
+	}
+
+	private void sortSync(){
+		synchronized (list) {
+			Collections.sort(list, new Comparator<BusStopJSONObject>(){
+	
+				@Override
+				public int compare(BusStopJSONObject arg0, BusStopJSONObject arg1) {
+					switch(sort){
+					case DISTANCE:
+						int out = (int) (arg0.distance - arg1.distance);
+						if(out == 0){
+							out = arg0.toString().compareTo(arg1.toString());
+						}
+						return out;
+					case NAME:
+						try {
+							return arg0.getString("Name").compareTo(arg1.getString("Name"));
+						} catch (JSONException e) {
+							return 0;
+						}
+					default:
+						return 0;
+					}
+				}
+	        	
+	        });
 		}
+	}
+
+	public void refresh(){
+		BusStopList.refresh();
+		this.setEmptyText(getString(R.string.loading));
+		setListShown(false);
+	}
+	
+	private void processData(){
+		JSONObject data = BusStopList.data();
+    	boolean displayedError = false;
+    	setListShown(true);
+    	setEmptyText("");
+    	
+    	if(data == null){
+    		setEmptyText(getString(R.string.internet_error));
+    		toastError(R.string.internet_error);
+    		return;
+    	}
+    	
+    	JSONObject stopData;
+		try {
+			stopData = data.getJSONObject("Stop");
+		} catch (JSONException e1) {
+			toastError(R.string.json_error);
+			displayedError = true;
+			return;
+		}
+		
+		Log.d("BusStopList", String.format("Found %d data", stopData.length()));
+		
+		list.clear();
+    	
+    	@SuppressWarnings("unchecked")
+		Iterator<String> keys = stopData.keys();
+    	Location location = locClient.getLastLocation();
+    	while(keys.hasNext()){
+        	try{
+        		BusStopJSONObject tag = new BusStopJSONObject(stopData.getJSONObject(keys.next()));
+        		updateLocationObject(location, tag);
+        		list.add(tag);
+        	}catch(JSONException e){
+        		if(!displayedError){
+        			toastError(R.string.json_error);
+        			displayedError = true;
+        		}
+        		Log.e("BusStopList", "Exception", e);
+        	}
+        }
+        
+		if(!returnClosest){
+			sort();
+		}else{
+			// if we don't do this synchronously
+			// it will make the activity flash into view
+			sortSync();
+			stopSelected(list.get(0));
+		}
+	}
+
+	private Toast toastError(int messageId){
+		if(getActivity() == null){
+			return null;
+		}
+		Toast toast = Toast.makeText(getActivity(), messageId, Toast.LENGTH_LONG);
+		toast.show();
+		return toast;
+	}
+
+	/**
+	 * Google play location service on connected
+	 */
+	@Override
+	public void onConnected(Bundle connectionHint) {
+		LocationRequest req = LocationRequest.create();
+		req.setPriority(LocationRequest.PRIORITY_LOW_POWER);
+		req.setInterval(5000l);
+		req.setFastestInterval(1000l);
+		locClient.requestLocationUpdates(req, this);
+		
+		if(BusStopList.data() != null){
+			processData();
+		}
+	}
+
+	@Override
+	public void onLocationChanged(Location location) {
+		synchronized(list){
+			for(BusStopJSONObject stop : list){
+				updateLocationObject(location, stop);
+			}
+		}
+		sort();
+	}
+	
+	private void updateLocationObject(Location location, BusStopJSONObject stop){
+		if(location == null){
+			return;
+		}
+		
+		float[] result = new float[2];
+		try {
+			Location.distanceBetween(
+					location.getLatitude(),
+					location.getLongitude(),
+					stop.getDouble("Latitude"),
+					stop.getDouble("Longitude"),
+					result
+			);
+		} catch (JSONException e) {
+			result[0] = -1f;
+		}
+		stop.distance = result[0];
 	}
 
 	private static class BusStopJSONObject extends JSONObject implements Parcelable, SearchableItem{
 		public float distance = -1f;
-		/**
-		 * Bearing from GPS
-		 */
-		public float bearing = -1f;
 		public BusStopJSONObject(JSONObject data) throws JSONException{
 			super(data.toString());
 		}
@@ -352,6 +403,7 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		public void writeToParcel(Parcel out, int flags) {
 			out.writeString(toString());
 		}
+		@SuppressWarnings("unused")
 		public static final Parcelable.Creator<BusStopJSONObject> CREATOR
 		= new Parcelable.Creator<BusStopJSONObject>() {
 			public BusStopJSONObject createFromParcel(Parcel in) {
@@ -387,7 +439,7 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		public View getView(int position, View convertView, ViewGroup parent){
 			View vi=convertView;
 			if(convertView==null){
-				vi = inflater.inflate(R.layout.busstop_row, null);
+				vi = getActivity().getLayoutInflater().inflate(R.layout.busstop_row, null);
 			}
 			BusStopJSONObject data = this.getItem(position);
 			TextView title = (TextView) vi.findViewById(R.id.title);
@@ -399,125 +451,18 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 				title.setText(R.string.json_error);
 				distance.setText("");
 			}
-//			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-//				if(data.bearing == -1f){
-//					vi.findViewById(R.id.compass).setVisibility(View.GONE);
-//				}else{
-//					ImageView compassView = (ImageView) vi.findViewById(R.id.compass);
-//					compassView.setVisibility(View.VISIBLE);
-//					compassView.setRotation(data.bearing - compass);
-//				}
-//			}else{
-				vi.findViewById(R.id.compass).setVisibility(View.GONE);
-//			}
 			return vi;
 		}
 	
 	}
 	
-	private class CompassHandler implements SensorEventListener {
-
-		private float[] accel;
-		private float[] magnetic;
-		
-		@Override
-		public void onAccuracyChanged(Sensor sensor, int accuracy) {
-		}
-
-		@Override
-		public void onSensorChanged(SensorEvent event) {
-			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-				accel = event.values;
-			}else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD){
-		        magnetic = event.values;
-			}
-		    if (accel != null && magnetic != null) {
-		        float R[] = new float[9];
-		        float I[] = new float[9];
-		        if(SensorManager.getRotationMatrix(R, I, accel, magnetic)){
-		            float orientation[] = new float[3];
-		            SensorManager.getOrientation(R, orientation);
-		            float azimuth = orientation[0];
-		            float azimuthDeg = ((float)Math.toDegrees(azimuth)+360)%360;
-		            compass = azimuthDeg;
-		            adapter.notifyDataSetChanged();
-		        }
-		    }
-		}
-		
-	}
-	
 	private class BusListListener extends ListenerList.Listener {
 		@Override
 		public void onFired() {
-			JSONObject data = BusStopList.data();
-        	boolean displayedError = false;
-        	setListShown(true);
-        	setEmptyText("");
-        	
-        	if(data == null){
-        		setEmptyText(getString(R.string.internet_error));
-        		toastError(R.string.internet_error);
-        		return;
-        	}
-        	
-        	JSONObject stopData;
-			try {
-				stopData = data.getJSONObject("Stop");
-			} catch (JSONException e1) {
-				toastError(R.string.json_error);
-    			displayedError = true;
-    			return;
+			if(!locClient.isConnected()){
+				return;
 			}
-			
-			Log.d("BusStopList", String.format("Found %d data", stopData.length()));
-			
-			list.clear();
-        	
-        	@SuppressWarnings("unchecked")
-			Iterator<String> keys = stopData.keys();
-        	Location location = locman.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-        	while(keys.hasNext()){
-            	try{
-            		BusStopJSONObject tag = new BusStopJSONObject(stopData.getJSONObject(keys.next()));
-            		if(location != null){
-	            		float[] result = new float[2];
-						Location.distanceBetween(
-								location.getLatitude(),
-								location.getLongitude(),
-								tag.getDouble("Latitude"),
-								tag.getDouble("Longitude"),
-								result
-						);
-						tag.distance = result[0];
-						tag.bearing = (result[1]+360)%360;
-            		}
-            		list.add(tag);
-            	}catch(JSONException e){
-            		if(!displayedError){
-            			toastError(R.string.json_error);
-            			displayedError = true;
-            		}
-            		Log.e("BusStopList", "Exception", e);
-            	}
-            }
-            
-			if(!returnClosest){
-				sort();
-			}else{
-				// if we don't do this synchronously
-				// it will make the activity flash into view
-				sortSync();
-				stopSelected(list.get(0));
-			}
-		}
-		private Toast toastError(int messageId){
-			if(getActivity() == null){
-				return null;
-			}
-			Toast toast = Toast.makeText(getActivity(), messageId, Toast.LENGTH_LONG);
-			toast.show();
-			return toast;
+			processData();
 		}
 	}
 	private class BusProgressListener extends ListenerList.Listener {
@@ -561,5 +506,10 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 	public boolean onClose() {
 		adapter.getFilter().filter("");
 		return true;
+	}
+
+	// unused from Google Play Location provider
+	@Override
+	public void onDisconnected() {
 	}
 }
