@@ -124,7 +124,7 @@ public class BusStopInfoFragment extends Fragment {
 						mark.showInfoWindow();
 						LatLng latlng = mark.getPosition();
 						mapView.getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(
-								new LatLng(latlng.latitude + 0.0004, latlng.longitude)
+								new LatLng(latlng.latitude + 0.0006, latlng.longitude)
 						, 17));
 						mapController.clearPolyline();
 						mapController.drawPolyline(item.lineid);
