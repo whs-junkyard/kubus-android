@@ -39,6 +39,7 @@ import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestHandle;
 import com.loopj.android.http.RequestParams;
 
 public class ThereFragment extends Fragment implements OnItemClickListener {
@@ -59,6 +60,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 	private LayoutInflater inflater;
 	private Handler handler;
 	private Bundle savedData;
+	private ArrayList<RequestHandle> requests = new ArrayList<RequestHandle>();
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -171,7 +173,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		API.cancel(getActivity());
+		stopRequests();
 	}
 
 	@Override
@@ -339,7 +341,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 		percentLoaded = new float[2];
 		data = new JSONArray[2];
 
-		API.cancel(getActivity());
+		stopRequests();
 
 		ArrayAdapter adapter = (ArrayAdapter) listView.getAdapter();
 		adapter.clear();
@@ -364,30 +366,39 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 		RequestParams params = new RequestParams();
 		params.put("busstationid", id);
 		Log.d("ThereFragment", "loading stop " + id + " to " + index);
-		API.get(getActivity(), "map/getBusStatusData", params,
-				new JsonHttpResponseHandler() {
-					@Override
-					public void onSuccess(int statusCode, Header[] headers,
-							JSONArray loadedData) {
-						data[index] = loadedData;
-						processData();
-					}
+		RequestHandle request = API.get(getActivity(), "map/getBusStatusData", params,
+			new JsonHttpResponseHandler() {
+				@Override
+				public void onSuccess(int statusCode, Header[] headers,
+						JSONArray loadedData) {
+					data[index] = loadedData;
+					processData();
+				}
+	
+				@Override
+				public void onProgress(int bytesWritten, int totalSize) {
+					percentLoaded[index] = (float) bytesWritten
+							/ (float) totalSize;
+					updatePercentage();
+				}
+	
+				@Override
+				public void onFailure(int statusCode, Header[] headers,
+						String responseString, Throwable throwable) {
+					Toast.makeText(getActivity(), R.string.internet_error,
+							Toast.LENGTH_LONG).show();
+					Log.e("ThereFragment", "Error in " + index, throwable);
+				}
+			}
+		);
+		requests.add(request);
+	}
 
-					@Override
-					public void onProgress(int bytesWritten, int totalSize) {
-						percentLoaded[index] = (float) bytesWritten
-								/ (float) totalSize;
-						updatePercentage();
-					}
-
-					@Override
-					public void onFailure(int statusCode, Header[] headers,
-							String responseString, Throwable throwable) {
-						Toast.makeText(getActivity(), R.string.internet_error,
-								Toast.LENGTH_LONG).show();
-						Log.e("ThereFragment", "Error in " + index, throwable);
-					}
-				});
+	private void stopRequests() {
+		for(RequestHandle request : requests){
+			request.cancel(true);
+		}
+		requests.clear();
 	}
 
 	private void updatePercentage() {

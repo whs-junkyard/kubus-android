@@ -15,24 +15,24 @@ public class API {
 
 	private static AsyncHttpClient client = new AsyncHttpClient();
 
-	public static void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-		client.get(getAbsoluteUrl(url), params, responseHandler);
+	public static RequestHandle get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+		return client.get(getAbsoluteUrl(url), params, responseHandler);
 	}
 	
-	public static void get(Context context, String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-		client.get(context, getAbsoluteUrl(url), params, responseHandler);
+	public static RequestHandle get(Context context, String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+		return client.get(context, getAbsoluteUrl(url), params, responseHandler);
 	}
 
-	public static void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-		client.post(getAbsoluteUrl(url), params, responseHandler);
+	public static RequestHandle post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+		return client.post(getAbsoluteUrl(url), params, responseHandler);
 	}
 	
-	public static void post(Context context, String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-		client.post(context, getAbsoluteUrl(url), params, responseHandler);
+	public static RequestHandle post(Context context, String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+		return client.post(context, getAbsoluteUrl(url), params, responseHandler);
 	}
 	
-	public static void registerNotify(RequestParams params, AsyncHttpResponseHandler responseHandler){
-		client.post(STREAM_URL + "push/stop", params, responseHandler);
+	public static RequestHandle registerNotify(RequestParams params, AsyncHttpResponseHandler responseHandler){
+		return client.post(STREAM_URL + "push/stop", params, responseHandler);
 	}
 
 	private static String getAbsoluteUrl(String relativeUrl) {

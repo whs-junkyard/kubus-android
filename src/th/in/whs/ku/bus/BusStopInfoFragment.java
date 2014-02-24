@@ -48,6 +48,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestHandle;
 import com.loopj.android.http.RequestParams;
 
 public class BusStopInfoFragment extends Fragment {
@@ -71,6 +72,7 @@ public class BusStopInfoFragment extends Fragment {
 	private Handler handler = new Handler();
 	private Autorefresher autorefresh = new Autorefresher();
 	private View headerView;
+	private RequestHandle lastRequest;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -219,7 +221,7 @@ public class BusStopInfoFragment extends Fragment {
 		RequestParams params = new RequestParams();
 		params.put("busstationid", stopData.get("ID"));
 		Log.d("BusStopInfoFragment", "Downloading stop info...");
-		API.get(getActivity(), "map/getBusStatusData", params, new JsonHttpResponseHandler() {
+		lastRequest = API.get("map/getBusStatusData", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers,
 					JSONArray data) {
@@ -293,7 +295,9 @@ public class BusStopInfoFragment extends Fragment {
 		if(mapController != null){
 			mapController.unregisterListener();
 		}
-		API.cancel(getActivity());
+		if(lastRequest != null){
+			lastRequest.cancel(true);
+		}
 	}
 	
 	@Override
