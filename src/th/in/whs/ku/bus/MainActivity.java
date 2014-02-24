@@ -92,6 +92,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
 	    			.setClassInstanceLimit(API.class, 1)
 	    			.setClassInstanceLimit(BusStopList.class, 1)
 	    			.setClassInstanceLimit(BusPosition.class, 1)
+	    			.setClassInstanceLimit(BusMapController.class, 1)
 	    			.build());
     		}else{
     			StrictMode.enableDefaults();

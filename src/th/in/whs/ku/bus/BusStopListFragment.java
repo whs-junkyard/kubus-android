@@ -23,6 +23,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -51,7 +52,7 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		DISTANCE
 	};
 	
-	protected List<BusStopJSONObject> list = new ArrayList<BusStopJSONObject>();
+	protected List<BusStopJSONObject> list = Collections.synchronizedList(new ArrayList<BusStopJSONObject>());
 	protected ArrayAdapter<BusStopJSONObject> adapter;
 	private int listenerId = -1;
 	private int errorListenerId = -1;
@@ -133,32 +134,48 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 	}
 
 	private void sort(){
-		Collections.sort(list, new Comparator<BusStopJSONObject>(){
+		new AsyncTask<Void, Void, Void>(){
 
 			@Override
-			public int compare(BusStopJSONObject arg0, BusStopJSONObject arg1) {
-				switch(sort){
-				case DISTANCE:
-					int out = (int) (arg0.distance - arg1.distance);
-					if(out == 0){
-						out = arg0.toString().compareTo(arg1.toString());
-					}
-					return out;
-				case NAME:
-					try {
-						return arg0.getString("Name").compareTo(arg1.getString("Name"));
-					} catch (JSONException e) {
+			protected Void doInBackground(Void... arg0) {
+				sortSync();
+				return null;
+			}
+
+			@Override
+			protected void onPostExecute(Void result) {
+				adapter.notifyDataSetChanged();
+			}
+			
+			
+		}.execute();
+	}
+	
+	private void sortSync(){
+		synchronized (list) {
+			Collections.sort(list, new Comparator<BusStopJSONObject>(){
+
+				@Override
+				public int compare(BusStopJSONObject arg0, BusStopJSONObject arg1) {
+					switch(sort){
+					case DISTANCE:
+						int out = (int) (arg0.distance - arg1.distance);
+						if(out == 0){
+							out = arg0.toString().compareTo(arg1.toString());
+						}
+						return out;
+					case NAME:
+						try {
+							return arg0.getString("Name").compareTo(arg1.getString("Name"));
+						} catch (JSONException e) {
+							return 0;
+						}
+					default:
 						return 0;
 					}
-				default:
-					return 0;
 				}
-			}
-        	
-        });
-		adapter.notifyDataSetChanged();
-		if(returnClosest){
-			stopSelected(0);
+	        	
+	        });
 		}
 	}
 	
@@ -218,20 +235,26 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		outState.putString("sort", this.sort.toString());
 	}
 
-	public void onListItemClick(ListView l, View v, int position, long id){		
-		stopSelected(position);
+	public void onListItemClick(ListView l, View v, int position, long id){
+		synchronized (list) {
+			stopSelected(position);
+		}
 	}
 	
 	private void stopSelected(int index){
+		if(list.size() <= index){
+			stopSelected(null);
+		}else{
+			stopSelected(adapter.getItem(index));
+		}
+	}
+	
+	private void stopSelected(BusStopJSONObject item){
 		StopSelectedInterface parent = (StopSelectedInterface) getParentFragment();
 		if(parent == null){
 			parent = (StopSelectedInterface) getActivity();
 		}
-		if(list.size() <= index){
-			parent.stopSelected(null);
-		}else{
-			parent.stopSelected(adapter.getItem(index));
-		}
+		parent.stopSelected(item);
 	}
 	
 	public Sort getSort() {
@@ -274,21 +297,23 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 
 		@Override
 		public void onLocationChanged(Location location) {
-			for(BusStopJSONObject stop : list){
-				float[] result = new float[2];
-				try {
-					Location.distanceBetween(
-							location.getLatitude(),
-							location.getLongitude(),
-							stop.getDouble("Latitude"),
-							stop.getDouble("Longitude"),
-							result
-					);
-				} catch (JSONException e) {
-					result[0] = -1f;
+			synchronized(list){
+				for(BusStopJSONObject stop : list){
+					float[] result = new float[2];
+					try {
+						Location.distanceBetween(
+								location.getLatitude(),
+								location.getLongitude(),
+								stop.getDouble("Latitude"),
+								stop.getDouble("Longitude"),
+								result
+						);
+					} catch (JSONException e) {
+						result[0] = -1f;
+					}
+					stop.distance = result[0];
+					stop.bearing = (result[1]+360)%360;
 				}
-				stop.distance = result[0];
-				stop.bearing = (result[1]+360)%360;
 			}
 			sort();
 		}
@@ -477,7 +502,14 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
             	}
             }
             
-            sort();
+			if(!returnClosest){
+				sort();
+			}else{
+				// if we don't do this synchronously
+				// it will make the activity flash into view
+				sortSync();
+				stopSelected(list.get(0));
+			}
 		}
 		private Toast toastError(int messageId){
 			if(getActivity() == null){
