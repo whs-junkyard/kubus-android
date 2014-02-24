@@ -170,7 +170,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
     	// GINGERBREAD_MR1 support NFC, but does not support createUri
     	// if I have access to a gingerbread phone with NFC I might fix this
     	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH){
-    		NfcAdapter nfc = NfcAdapter.getDefaultAdapter(this);
+    		nfc = NfcAdapter.getDefaultAdapter(this);
     	}
     }
 

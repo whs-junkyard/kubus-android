@@ -130,6 +130,12 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		locClient.connect();
 	}
 	
+	@Override
+	public void onStop(){
+		super.onStart();
+		locClient.disconnect();
+	}
+	
 	public void onResume(){
 		super.onResume();
 		if(listenerId == -1){
