@@ -24,7 +24,7 @@ public class GCMController {
 	private static final String SENDER_ID = "209951392219";
 	
 	public GCMController(Context context){
-		this.context = context;
+		this.context = context.getApplicationContext();
 		instance = this;
 	}
 	

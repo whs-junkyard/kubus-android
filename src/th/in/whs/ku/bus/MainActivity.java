@@ -118,8 +118,12 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
     	}
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_PROGRESS);
-        this.gcm = new GCMController(this);
-        this.gcm.init();
+        
+        this.gcm = GCMController.getInstance();
+        if(this.gcm == null){
+        	this.gcm = new GCMController(this);
+        	this.gcm.init();
+        }
         
         if(!checkGooglePlay()){
         	return;
@@ -158,7 +162,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
         
         if(savedInstanceState != null){
 			int tab = savedInstanceState.getInt("tab");
-			getSupportActionBar().setSelectedNavigationItem(tab);
+			actionBar.setSelectedNavigationItem(tab);
 		}
         
         AppRater appRater = new AppRater(this);
