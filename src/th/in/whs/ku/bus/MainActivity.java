@@ -98,24 +98,6 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
     			StrictMode.enableDefaults();
     		}
         }
-    	try {
-    	    ApplicationInfo ai = getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
-    	    Bundle bundle = ai.metaData;
-    	    PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-    	    String dsn = bundle.getString("sentry_server");
-    	    
-    	    HashMap<String, String> tags = new HashMap<String, String>();
-    	    tags.put("version", pInfo.versionName);
-    	    tags.put("debug", BuildConfig.DEBUG ? "true" : "false");
-    	    Sentry.init(this, "http://sentry.whs.in.th", dsn, tags);
-    	    API.init(pInfo.versionName);
-    	} catch (NameNotFoundException e) {
-    	    Log.e("MainActivity", "Failed to load meta-data, NameNotFound: " + e.getMessage());
-    	    API.init("unknown");
-    	} catch (NullPointerException e) {
-    	    Log.e("MainActivity", "Failed to load meta-data, NullPointer: " + e.getMessage());
-    	    API.init("unknown");
-    	}
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_PROGRESS);
         
