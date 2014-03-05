@@ -249,6 +249,9 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 	@Override
 	public void onItemSelected(AdapterView<?> parent, View view, int pos,
 			long id) {
+		if(!isAdded()){
+			return;
+		}
 		Line line = adapter.getItem(pos);
 		if(line.isAll()){
 			mapController.clearFilter();
