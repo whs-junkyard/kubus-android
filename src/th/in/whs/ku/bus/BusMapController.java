@@ -464,7 +464,11 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	}
 	
 	public Marker get(int id){
-		return markers.get(id).marker;
+		BusMarker out = markers.get(id);
+		if(out == null){
+			return null;
+		}
+		return out.marker;
 	}
 	
 	private HashMap<String, BitmapDescriptor> directionIconCache = new HashMap<String, BitmapDescriptor>();
