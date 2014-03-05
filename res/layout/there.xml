@@ -1,112 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootThere"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dataLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_marginTop="10dp"
-    android:orientation="vertical" >
+    android:layout_height="fill_parent" >
 
-    <LinearLayout
-        android:id="@+id/fromLayout"
+    <ProgressBar
+        android:id="@id/progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/nobus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="@string/no_bus"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:visibility="gone" />
+
+    <ListView
+        android:id="@+id/busList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp" >
+        android:divider="@null"
+        android:dividerHeight="0dp" >
+    </ListView>
 
-        <TextView
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:gravity="right"
-            android:text="@string/there_from" />
-
-        <Button
-            android:id="@+id/from"
-            style="@style/StopSpinner"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:singleLine="true"
-            android:ellipsize="marquee" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/toLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp" >
-
-        <TextView
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:gravity="right"
-            android:text="@string/there_to" />
-
-        <Button
-            android:id="@+id/to"
-            style="@style/StopSpinner"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:singleLine="true"
-            android:ellipsize="marquee" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/lineLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="90dp"
-        android:layout_marginTop="10dp" >
-
-        <TextView
-            android:id="@+id/busLine"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="5dp"
-            android:text="@string/line_passing" />
-
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/notifyBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="80dp"
-        android:layout_marginRight="10dp"
-        android:enabled="false"
-        android:text="@string/notify" />
-
-    <RelativeLayout
-        android:id="@+id/dataLayout"
-        android:layout_width="match_parent"
-        android:layout_height="fill_parent" >
-
-        <ProgressBar
-            android:id="@id/progress"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/nobus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="@string/no_bus"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:visibility="gone" />
-
-        <ListView
-            android:id="@+id/busList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:dividerHeight="0dp"
-			android:divider="@null" >
-        </ListView>
-    </RelativeLayout>
-
-</LinearLayout>
+</RelativeLayout>
