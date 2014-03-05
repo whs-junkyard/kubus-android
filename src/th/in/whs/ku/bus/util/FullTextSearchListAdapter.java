@@ -1,9 +1,9 @@
-package th.in.whs.ku.bus.widget;
+package th.in.whs.ku.bus.util;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import th.in.whs.ku.bus.widget.FullTextSearchListAdapter.SearchableItem;
+import th.in.whs.ku.bus.util.FullTextSearchListAdapter.SearchableItem;
 import android.content.Context;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;

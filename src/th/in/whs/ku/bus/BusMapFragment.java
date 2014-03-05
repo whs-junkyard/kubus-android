@@ -7,7 +7,7 @@ import org.json.JSONObject;
 import th.in.whs.ku.bus.BusStopListFragment.Sort;
 import th.in.whs.ku.bus.api.BusPosition;
 import th.in.whs.ku.bus.api.BusStopList;
-import th.in.whs.ku.bus.api.ListenerList;
+import th.in.whs.ku.bus.util.ListenerList;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;

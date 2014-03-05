@@ -2,7 +2,7 @@ package th.in.whs.ku.bus;
 
 import java.io.IOException;
 
-import th.in.whs.ku.bus.api.NFCBuilder;
+import th.in.whs.ku.bus.util.NFCBuilder;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.PendingIntent;

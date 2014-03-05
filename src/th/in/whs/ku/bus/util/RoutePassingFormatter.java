@@ -1,4 +1,4 @@
-package th.in.whs.ku.bus.widget;
+package th.in.whs.ku.bus.util;
 
 import java.util.Collections;
 import java.util.List;

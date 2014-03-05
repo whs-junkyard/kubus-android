@@ -1,4 +1,4 @@
-package th.in.whs.ku.bus.api;
+package th.in.whs.ku.bus.util;
 
 import android.os.Bundle;
 import android.util.SparseArray;

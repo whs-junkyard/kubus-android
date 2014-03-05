@@ -1,4 +1,4 @@
-package th.in.whs.ku.bus.api;
+package th.in.whs.ku.bus.util;
 
 import android.content.Context;
 import th.in.whs.ku.bus.R;

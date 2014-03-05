@@ -1,6 +1,7 @@
 package th.in.whs.ku.bus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.json.JSONArray;
@@ -10,12 +11,15 @@ import org.json.JSONObject;
 import th.in.whs.ku.bus.api.Bus;
 import th.in.whs.ku.bus.api.BusPosition;
 import th.in.whs.ku.bus.api.BusStopList;
-import th.in.whs.ku.bus.api.ListenerList;
-import th.in.whs.ku.bus.api.MemoryManager;
+import th.in.whs.ku.bus.util.ListenerList;
+import th.in.whs.ku.bus.util.MemoryManager;
+import th.in.whs.ku.bus.util.NearestLineToPoint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -243,9 +247,73 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		drawPolyline(String.valueOf(lineId));
 	}
 	
-	public void drawPolyline(String lineId, String from, String to){
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void drawPolyline(final String lineId, final String from, final String to){
 		polylineRequestedByUser = 1;
-		_drawPolyline(String.valueOf(lineId), from, to);
+		
+		JSONObject data = BusStopList.data();
+		if(data == null){
+			return;
+		}
+		try {
+			JSONObject stopList = data.getJSONObject("Stop");
+			JSONObject fromStop = stopList.getJSONObject(from);
+			JSONObject toStop = stopList.getJSONObject(to);
+			JSONArray line = data.getJSONObject("Polyline").getJSONArray(lineId);
+			
+			Double[][] inputFrom = new Double[line.length() + 1][2];
+			Double[][] inputTo = new Double[line.length() + 1][2];
+			inputFrom[0] = new Double[]{
+					fromStop.getDouble("Latitude"),
+					fromStop.getDouble("Longitude")
+			};
+			inputTo[0] = new Double[]{
+					toStop.getDouble("Latitude"),
+					toStop.getDouble("Longitude")
+			};
+			for(int i=0; i<line.length(); i++){
+				String[] splitted = line.getString(i).split(",");
+				for(int j=0; j<splitted.length; j++){
+					inputFrom[i+1][j] = Double.valueOf(splitted[j]);
+					inputTo[i+1][j] = Double.valueOf(splitted[j]);
+				}
+			}
+			
+			final Double[][][] results = new Double[][][]{null, null};
+			
+			class LocalNearestLineToPoint extends NearestLineToPoint {
+				
+				private int index;
+				
+				public LocalNearestLineToPoint(int index){
+					super();
+					this.index = index;
+				}
+
+				@Override
+				protected void onPostExecute(Double[][] result) {
+					results[index] = result;
+					if(results[0] != null && results[1] != null){
+						_drawPolyline(lineId, from, to, results[0], results[1]);
+					}
+				}
+				
+			}
+			
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+				new LocalNearestLineToPoint(0)
+					.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, inputFrom);
+				new LocalNearestLineToPoint(1)
+					.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, inputTo);
+			}else{
+				new LocalNearestLineToPoint(0)
+					.execute(inputFrom);
+				new LocalNearestLineToPoint(1)
+					.execute(inputTo);
+			}
+		} catch (JSONException e) {
+			return;
+		}
 	}
 	
 	public void drawPolyline(String lineId){
@@ -254,10 +322,18 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	}
 	
 	private void _drawPolyline(String lineId){
-		_drawPolyline(lineId, null, null);
+		_drawPolyline(lineId, null, null, null, null);
 	}
 	
-	private void _drawPolyline(String lineId, String fromStop, String toStop){
+	/**
+	 * Draw a polyline and remove other polylines
+	 * @param lineId
+	 * @param fromStop Stop ID
+	 * @param toStop Stop ID
+	 * @param polylineSpliceFrom Polyline close to "from" as returned from `NearestLineToPoint`. The last point must be an existing polyline point.
+	 * @param polylineSpliceTo Polyline close to "to" as returned from `NearestLineToPoint`
+	 */
+	private void _drawPolyline(String lineId, String fromStop, String toStop, Double[][] polylineSpliceFrom, Double[][] polylineSpliceTo){
 		if(lineId.equals(currentPolyline)){
 			return;
 		}
@@ -273,8 +349,6 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		
 		int color = context.getResources().getColor(getColor(Integer.valueOf(lineId)));
 		
-		double[] startStop = new double[2];
-		double[] endStop = new double[2];
 		boolean foundStart = fromStop == null;
 		boolean foundStop = toStop == null;
 		
@@ -302,8 +376,6 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 					if(!foundStart){
 						if(stop.getString("ID").equals(fromStop)){
 							foundStart = true;
-							startStop[0] = stop.getDouble("Latitude");
-							startStop[1] = stop.getDouble("Longitude");
 						}else{
 							continue;
 						}
@@ -322,8 +394,6 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 					stopMarker.add(new StopMarker(map.addMarker(marker), stop));
 					
 					if(toStop != null && stop.getString("ID").equals(toStop)){
-						endStop[0] = stop.getDouble("Latitude");
-						endStop[1] = stop.getDouble("Longitude");
 						foundStop = true;
 						break;
 					}
@@ -341,9 +411,9 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			}
 		}catch(JSONException e){
 		}
-		// Draw bus marker
-		foundStart = true;
-		foundStop = true;
+		// Draw lines
+		foundStart = false;
+		foundStop = false;
 		try {
 			JSONObject data = listRoot.getJSONObject("Polyline");
 			if(data == null){
@@ -354,7 +424,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 				return;
 			}
 			
-			float[] initialItem = toFloat(line.getString(0).split(","));
+			double[] initialItem = toDouble(line.getString(0).split(","));
 			float lastBearing = Float.MIN_VALUE;
 			LatLng lastItem = new LatLng(initialItem[0], initialItem[1]);
 			PolylineOptions pol = new PolylineOptions().width(5).color(color);
@@ -368,27 +438,40 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			for(int loop=0; loop<2; loop++){
 				for(int i=1; i<line.length(); i++){
 					String[] rawItem = line.getString(i).split(",");
-					float[] item = toFloat(rawItem);
+					double[] item = toDouble(rawItem);
+					LatLng latlng = new LatLng(item[0], item[1]);
 					
-					// This doesn't work. Polyline does not draw from stop to stop
-					// but rather parallel.
-					/*if(fromStop != null){
-						if(item[0] == startStop[0] && item[1] == startStop[1]){
+					if(polylineSpliceFrom != null){
+						if(polylineSpliceFrom[1][0].equals(item[0]) && polylineSpliceFrom[1][1].equals(item[1])){
 							foundStart = true;
+							lastItem = new LatLng(
+									polylineSpliceFrom[0][0],
+									polylineSpliceFrom[0][1]
+							);
+							pol.add(lastItem);
 						}
 						if(!foundStart){
 							continue;
 						}
-					}*/
-					
-					if(rawItem[0].equals("13.85004") && rawItem[1].equals("100.572433")){
-						// https://code.google.com/p/gmaps-api-issues/issues/detail?id=5313
-						item[0] += 0.000001;
 					}
 					
-					LatLng latlng = new LatLng(item[0], item[1]);
+					if(foundStart && polylineSpliceTo != null){
+						if(polylineSpliceTo[1][0].equals(item[0]) && polylineSpliceTo[1][1].equals(item[1])){
+							pol.add(new LatLng(
+									polylineSpliceTo[0][0],
+									polylineSpliceTo[0][1]
+							));
+							foundStop = true;
+							break;
+						}
+					}
 					
-					pol.add(lastItem, latlng);
+					if(item[0] == 13.85004 && item[1] == 100.572433){
+						// https://code.google.com/p/gmaps-api-issues/issues/detail?id=5313
+						latlng = new LatLng(latlng.latitude + 0.000001, latlng.longitude); 
+					}
+					
+					pol.add(latlng);
 					
 					if(directionIcon != null){
 						// we don't use distance, only bearing
@@ -408,15 +491,12 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 						lastBearing = bearing;
 					}
 					
-					
-					/*if(item[0] == endStop[0] && item[1] == endStop[1]){
-						foundStop = true;
-						break;
-					}*/
-					
 					lastItem = latlng;
 				}
-				if(toStop == null || foundStop){
+				if(polylineSpliceFrom == null || foundStop){
+					break;
+				}else if(polylineSpliceFrom != null && !foundStart){
+					Log.d("BusMapController", "Can't find from stop in polyline.");
 					break;
 				}
 			}
@@ -431,10 +511,10 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	 * @param str String of float numbers
 	 * @return Float array
 	 */
-	private float[] toFloat(String[] str){
-		float[] out = new float[str.length];
+	private double[] toDouble(String[] str){
+		double[] out = new double[str.length];
 		for (int i = 0; i < str.length; i++) {
-			out[i] = Float.valueOf(str[i]);
+			out[i] = Double.valueOf(str[i]);
 		}
 		return out;
 	}

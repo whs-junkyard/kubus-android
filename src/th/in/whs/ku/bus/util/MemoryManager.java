@@ -1,4 +1,4 @@
-package th.in.whs.ku.bus.api;
+package th.in.whs.ku.bus.util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

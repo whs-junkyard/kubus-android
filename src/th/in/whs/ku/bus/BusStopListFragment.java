@@ -11,9 +11,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import th.in.whs.ku.bus.api.BusStopList;
-import th.in.whs.ku.bus.api.ListenerList;
-import th.in.whs.ku.bus.widget.FullTextSearchListAdapter;
-import th.in.whs.ku.bus.widget.FullTextSearchListAdapter.SearchableItem;
+import th.in.whs.ku.bus.util.FullTextSearchListAdapter;
+import th.in.whs.ku.bus.util.ListenerList;
+import th.in.whs.ku.bus.util.FullTextSearchListAdapter.SearchableItem;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.location.Location;

@@ -3,7 +3,7 @@ package th.in.whs.ku.bus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import th.in.whs.ku.bus.api.NFCBuilder;
+import th.in.whs.ku.bus.util.NFCBuilder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;

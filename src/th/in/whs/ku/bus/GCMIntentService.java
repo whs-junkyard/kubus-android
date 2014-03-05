@@ -1,6 +1,6 @@
 package th.in.whs.ku.bus;
 
-import th.in.whs.ku.bus.api.TimeAgo;
+import th.in.whs.ku.bus.util.TimeAgo;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 

@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import com.squareup.wire.Wire;
 
 import th.in.whs.ku.bus.protobuf.Packet;
+import th.in.whs.ku.bus.util.TimeAgo;
 import android.os.Parcel;
 import android.os.Parcelable;
 
