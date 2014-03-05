@@ -74,8 +74,7 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		MenuInflater menuInflater = getActivity().getMenuInflater();
-		menuInflater.inflate(R.menu.refresh, menu);
+		inflater.inflate(R.menu.refresh, menu);
 	}
 
 	@Override

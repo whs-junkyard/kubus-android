@@ -93,10 +93,9 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 			return;
 		}
 		
-		MenuInflater menuInflater = getActivity().getMenuInflater();
-		menuInflater.inflate(R.menu.search, menu);
-		menuInflater.inflate(R.menu.refresh, menu);
-		menuInflater.inflate(R.menu.busstoplist, menu);
+		inflater.inflate(R.menu.search, menu);
+		inflater.inflate(R.menu.refresh, menu);
+		inflater.inflate(R.menu.busstoplist, menu);
 		
 		setSortItemName(menu.findItem(R.id.sort), this.sort);
 		
