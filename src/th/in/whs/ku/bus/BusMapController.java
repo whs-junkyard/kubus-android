@@ -66,6 +66,8 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			return R.color.line4;
 		case 5:
 			return R.color.line5;
+		case 6:
+			return R.color.line4;
 		default:
 			return R.color.line1;
 		}
@@ -172,6 +174,11 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			Marker marker;
 			boolean newlyCreated = false;
 			
+			int lineid = bus.lineid;
+			if(lineid == 6){
+				lineid = 4;
+			}
+			
 			if(busMarker == null){
 				LatLng latlng = new LatLng(bus.latitude, bus.longitude);
 				marker = map.addMarker(new MarkerOptions().position(latlng));
@@ -192,7 +199,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 				}
 			}
 			
-			if(bus.lineid == 0 || bus.isinpark){
+			if(lineid == 0 || bus.isinpark){
 				marker.setTitle(bus.name);
 				if(bus.isinpark){
 					marker.setSnippet(context.getString(R.string.bus_parking));
@@ -200,11 +207,11 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 					marker.setSnippet(context.getString(R.string.bus_no_line));
 				}
 			}else{
-				marker.setTitle(String.format(context.getString(R.string.bus_line), bus.lineid));
+				marker.setTitle(String.format(context.getString(R.string.bus_line), lineid));
 				marker.setSnippet(bus.name);
 			}
 			
-			if(newlyCreated || busMarker.bus.lineid != bus.lineid){
+			if(newlyCreated || busMarker.bus.lineid != lineid){
 				Log.d("BusMapController", "Requesting icon "+bus.lineid+" id "+bus.id);
 				BitmapDescriptor icon = getBusIcon(bus);
 				marker.setIcon(icon);
@@ -241,6 +248,8 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			if(f.type == Filter.FilterType.BUS && bus.id == f.value){
 				return true;
 			}else if(f.type == Filter.FilterType.LINE && bus.lineid == f.value){
+				return true;
+			}else if(f.type == Filter.FilterType.LINE && f.value == 4 && bus.lineid == 6){
 				return true;
 			}
 		}
@@ -568,6 +577,9 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	 * @return BitmapDescriptor
 	 */
 	public BitmapDescriptor getDirectionIcon(String lineId){
+		if(lineId.equals("6")){
+			lineId = "4";
+		}
 		BitmapDescriptor out = directionIconCache.get(lineId);
 		if(out != null){
 			return out;
@@ -602,17 +614,21 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	 * @return BitmapDescriptor
 	 */
 	public BitmapDescriptor getBusIcon(Bus bus){
-		BitmapDescriptor out = busIconCache.get(bus.lineid);
+		int lineid = bus.lineid;
+		if(lineid == 6){
+			lineid = 4;
+		}
+		BitmapDescriptor out = busIconCache.get(lineid);
 		if(out != null){
 			return out;
 		}
-		out = getNewBusIcon(bus);
-		busIconCache.put(bus.lineid, out);
+		out = getNewBusIcon(lineid);
+		busIconCache.put(lineid, out);
 		return out;
 	}
 	
-	public BitmapDescriptor getNewBusIcon(Bus bus){
-		switch(bus.lineid){
+	public BitmapDescriptor getNewBusIcon(int lineid){
+		switch(lineid){
 		case 1:
 			return BitmapDescriptorFactory.fromResource(R.drawable.bus_red);
 		case 2:
@@ -636,6 +652,9 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	 * @return BitmapDescriptor
 	 */
 	public BitmapDescriptor getStopIcon(String lineId){
+		if(lineId.equals("6")){
+			lineId = "4";
+		}
 		BitmapDescriptor out = stopIconCache.get(lineId);
 		if(out != null){
 			return out;
@@ -767,7 +786,11 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 				int busid = markers.keyAt(i);
 				Bus bus = BusPosition.get(busid);
 				polylineRequestedByUser = 2;
-				_drawPolyline(String.valueOf(bus.lineid));
+				String lineid = String.valueOf(bus.lineid);
+				if(lineid.equals("6")){
+					lineid = "4";
+				}
+				_drawPolyline(lineid);
 				break;
 			}
 		}
