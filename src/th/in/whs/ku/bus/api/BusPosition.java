@@ -24,7 +24,7 @@ import com.squareup.wire.Wire;
 
 public class BusPosition implements Parcelable, Cloneable {
 	
-	private final URI WS_ENDPOINT = URI.create("ws://madoka.whs.in.th:58439/primus/");
+	private final URI WS_ENDPOINT = URI.create("ws://madoka.whs.in.th:58439/primus/?version=2");
 	private static Wire wire = new Wire();
 	
 	// facades 

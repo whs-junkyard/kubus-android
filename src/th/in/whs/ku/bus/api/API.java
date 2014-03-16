@@ -10,7 +10,8 @@ import android.support.v4.app.FragmentActivity;
 import com.loopj.android.http.*;
 
 public class API {
-	protected static final String BASE_URL="http://kubus.netburzt.com/";
+	protected static final String APP_URL="http://kubus.netburzt.com/";
+	protected static final String BASE_URL="http://kusmartbus.netburzt.com/";
 	protected static final String STREAM_URL="http://madoka.whs.in.th:58439/";
 
 	private static AsyncHttpClient client = new AsyncHttpClient();
@@ -36,6 +37,9 @@ public class API {
 	}
 
 	private static String getAbsoluteUrl(String relativeUrl) {
+		if(relativeUrl.startsWith("appapi/")){
+			return APP_URL + relativeUrl;
+		}
 		return BASE_URL + relativeUrl;
 	}
 

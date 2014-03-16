@@ -57,7 +57,6 @@ public class Bus{
     	this.id = obj.id;
         this.latitude = obj.latitude;
         this.longitude = obj.longitude;
-        this.no = obj.no;
         this.name = obj.name;
         this.lineid = obj.lineid;
         this.isinline = obj.isinline;
