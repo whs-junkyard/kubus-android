@@ -370,7 +370,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			stopMarker.ensureCapacity(line.length());
 			
 			for(int loop=0; loop<2; loop++){
-				for(int i=1; i<line.length(); i++){
+				for(int i=0; i<line.length(); i++){
 					JSONObject stop = stopData.getJSONObject(line.getString(i));
 					
 					if(!foundStart){
@@ -436,6 +436,11 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			}
 			
 			for(int loop=0; loop<2; loop++){
+				// XXX: i don't know why 1 is here
+				// if i put 0 routing from ngam1 to sci fac will break
+				// if i put 1 mapfragment will break
+				// i could use an if, but i think i should get better understanding
+				// of the situation first
 				for(int i=1; i<line.length(); i++){
 					String[] rawItem = line.getString(i).split(",");
 					double[] item = toDouble(rawItem);
