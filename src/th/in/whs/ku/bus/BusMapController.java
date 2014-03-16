@@ -551,7 +551,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		return out.marker;
 	}
 	
-	private HashMap<String, BitmapDescriptor> directionIconCache = new HashMap<String, BitmapDescriptor>();
+	private static HashMap<String, BitmapDescriptor> directionIconCache = new HashMap<String, BitmapDescriptor>();
 	
 	/**
 	 * Get a stop icon (or cached one) for use in map
@@ -585,7 +585,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		}
 	}
 	
-	private SparseArray<BitmapDescriptor> busIconCache = new SparseArray<BitmapDescriptor>();
+	private static SparseArray<BitmapDescriptor> busIconCache = new SparseArray<BitmapDescriptor>();
 	
 	/**
 	 * Get a bus icon (or cached one) for use in map
@@ -619,7 +619,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		}
 	}
 	
-	private HashMap<String, BitmapDescriptor> stopIconCache = new HashMap<String, BitmapDescriptor>();
+	private static HashMap<String, BitmapDescriptor> stopIconCache = new HashMap<String, BitmapDescriptor>();
 	
 	/**
 	 * Get a stop icon (or cached one) for use in map
