@@ -11,6 +11,8 @@ import java.util.Date;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import th.in.whs.ku.bus.BusMapController;
 import th.in.whs.ku.bus.R;
 import th.in.whs.ku.bus.protobuf.Packet;
@@ -117,6 +119,11 @@ public class Bus{
     }
     
     public boolean isLocationEqual(Bus b){
+    	return this.latitude == b.latitude &&
+        		this.longitude == b.longitude;
+    }
+    
+    public boolean isLocationEqual(LatLng b){
     	return this.latitude == b.latitude &&
         		this.longitude == b.longitude;
     }

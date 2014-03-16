@@ -179,15 +179,16 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 				markers.put(bus.id, busMarker);
 				newlyCreated = true;
 			}else{
-				if(busMarker.bus.equals(bus)){
-					continue;
-				}
-				
 				marker = busMarker.marker;
 				
-				if(!busMarker.bus.isLocationEqual(bus)){
+				// i don't think this check work. it'll always fire due to floating point difference
+				if(!bus.isLocationEqual(marker.getPosition())){
 					LatLng latlng = new LatLng(bus.latitude, bus.longitude);
 					marker.setPosition(latlng);
+				}
+				
+				if(busMarker.bus.equals(bus)){
+					continue;
 				}
 			}
 			
