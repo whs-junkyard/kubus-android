@@ -246,7 +246,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
     
     public void onResume(){
     	super.onResume();
-    	startBusPositionTimer();
+//    	startBusPositionTimer();
     	
     	if(nfc != null){
     		this.setNFC();

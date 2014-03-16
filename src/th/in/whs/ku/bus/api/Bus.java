@@ -1,6 +1,7 @@
 package th.in.whs.ku.bus.api;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -18,7 +19,6 @@ public class Bus{
 	public int id;
     public double latitude;
     public double longitude;
-    public int no;
     public String name;
     public int lineid;
     public boolean isinline;
@@ -30,7 +30,6 @@ public class Bus{
     		this.id = obj.getInt("busid");
     	    this.latitude = obj.getDouble("latitude");
     	    this.longitude = obj.getDouble("longitude");
-    	    this.no = obj.getInt("busno");
     	    this.name = obj.getString("busname");
     	    this.lineid = obj.getInt("buslineid");
     	    if(obj.has("isinline")){
@@ -50,6 +49,7 @@ public class Bus{
     	    }
     	    this.timestamp = getDateFormat().parse(obj.getString("bustimestamp")).getTime();
 		} catch (JSONException e) {
+			Log.e("Bus", "Bus JSON Parse error", e);
 		} catch (ParseException e) {
 		}
     }
@@ -73,7 +73,6 @@ public class Bus{
     	out.put("busid", this.id);
     	out.put("latitude", this.latitude);
     	out.put("longitude", this.longitude);
-    	out.put("busno", this.no);
     	out.put("busname", this.name);
     	out.put("buslineid", this.lineid);
     	out.put("isinline", this.isinline ? "t" : "f");
@@ -87,7 +86,6 @@ public class Bus{
     		.id(id)
     		.latitude(latitude)
     		.longitude(longitude)
-    		.no(no)
     		.name(name)
     		.lineid(lineid)
     		.isinline(isinline)
@@ -109,7 +107,6 @@ public class Bus{
     
     public boolean equals(Bus b){
     	return this.id == b.id &&
-    		this.no == b.no &&
     		this.name == b.name &&
     		this.lineid == b.lineid &&
     		this.isinline == b.isinline &&

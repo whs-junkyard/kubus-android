@@ -3,7 +3,7 @@ message Packet {
 		required uint32 id = 1;
 		required double latitude = 2;
 		required double longitude = 3;
-		optional uint32 no = 4;
+		//optional uint32 no = 4;
 		optional string name = 5;	
 		optional uint32 lineid = 6;
 		optional bool isinline = 7;

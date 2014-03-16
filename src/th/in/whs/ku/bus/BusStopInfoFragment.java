@@ -49,10 +49,6 @@ public class BusStopInfoFragment extends Fragment {
 	 * Duration which autorefresh() will be fired
 	 */
 	private static final int AUTOREFRESH_MS = 10000;
-	/**
-	 * Duration which startTimeupdate() will be fired
-	 */
-	private static final int TIMER_UPDATE_MS = 500;
 	
 	private JSONObject stopData;
 	private JSONArray stopBus;
@@ -175,8 +171,6 @@ public class BusStopInfoFragment extends Fragment {
 			fragmentManager.popBackStack();
 			return;
 		}
-		
-		startTimeupdate();
 	}
 	
 	private void onMapCreated(){
@@ -365,24 +359,6 @@ public class BusStopInfoFragment extends Fragment {
 		} catch (JSONException e) {
 		}
 	}
-
-	/**
-	 * Timer to update duration until bus arrive in the view
-	 */
-	private void startTimeupdate(){
-		handler.postDelayed(new Runnable(){
-
-			@Override
-			public void run() {
-				if(!isVisible()){
-					return;
-				}
-				adapter.notifyDataSetChanged();
-				startTimeupdate();
-			}
-			
-		}, TIMER_UPDATE_MS);
-	}
 	
 	/**
 	 * Reload data after a timeout
@@ -457,23 +433,17 @@ public class BusStopInfoFragment extends Fragment {
 			}
 			busNo.setText(timeString);
 			
-			Bus bus = data.getBus();
-			if(bus != null){
-				busName.setText(bus.name);
-				
-				NinePatchDrawable background = (NinePatchDrawable) getActivity().getResources().getDrawable(R.drawable.cards);
-				int color = getResources().getColor(bus.getColor());
-				background.setColorFilter(color, android.graphics.PorterDuff.Mode.MULTIPLY);
-				View bgView = vi.findViewById(R.id.busLineRowBg);
-				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
-					bgView.setBackground(background);
-				}else{
-					bgView.setBackgroundDrawable(background);
-				}
-			}else{
-				busName.setText(data.name);
-			}
+			busName.setText(data.name);
 			lineNo.setText(data.linename);
+			NinePatchDrawable background = (NinePatchDrawable) getActivity().getResources().getDrawable(R.drawable.cards);
+			int color = getResources().getColor(BusMapController.getColor(data.lineid));
+			background.setColorFilter(color, android.graphics.PorterDuff.Mode.MULTIPLY);
+			View bgView = vi.findViewById(R.id.busLineRowBg);
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+				bgView.setBackground(background);
+			}else{
+				bgView.setBackgroundDrawable(background);
+			}
 			
 			return vi;
 		}

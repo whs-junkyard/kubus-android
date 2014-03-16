@@ -204,6 +204,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			}
 			
 			if(newlyCreated || busMarker.bus.lineid != bus.lineid){
+				Log.d("BusMapController", "Requesting icon "+bus.lineid+" id "+bus.id);
 				BitmapDescriptor icon = getBusIcon(bus);
 				marker.setIcon(icon);
 			}
@@ -213,6 +214,8 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			}else{
 				marker.setAlpha(1f);
 			}
+			
+			busMarker.bus = bus;
 		}
 		ArrayList<Integer> remove = new ArrayList<Integer>();
 		int size = markers.size();

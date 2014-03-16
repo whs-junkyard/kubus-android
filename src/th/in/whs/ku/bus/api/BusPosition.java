@@ -155,6 +155,7 @@ public class BusPosition implements Parcelable, Cloneable {
 					loadToMap(resp);
 				} catch (JSONException e) {
 				}
+				Log.d("BusPosition", "Update by refresh");
 				
 				listeners.fire();
 			}
@@ -238,7 +239,7 @@ public class BusPosition implements Parcelable, Cloneable {
 						bus.longitude = position.longitude;
 					}
 				} catch (IOException e) {
-					Log.e("BusPosition API", "MsgPack parse fail", e);
+					Log.e("BusPosition API", "Protobuf parse fail", e);
 					return;
 				}
 		    	if(context != null){
@@ -246,6 +247,7 @@ public class BusPosition implements Parcelable, Cloneable {
 	
 						@Override
 						public void run() {
+							Log.d("BusPosition", "Update by streaming");
 							listeners.fire();
 						}
 			    		
