@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import th.in.whs.ku.bus.api.API;
 import th.in.whs.ku.bus.api.Bus;
@@ -24,6 +25,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,7 +46,7 @@ import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestHandle;
 import com.loopj.android.http.RequestParams;
 
-public class ThereFragment extends Fragment implements OnItemClickListener {
+public class ThereFragment extends Fragment implements OnItemClickListener, StopSelectedInterface {
 
 	private static final int SELECT_INTENT_CODE = 673;
 	/**
@@ -337,7 +339,19 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 	}
 
 	private void autoSelectFromStop() {
-		openStopList(0, true);
+		if(this.getChildFragmentManager().findFragmentByTag("AutoSelectFrom") != null){
+			return;
+		}
+		FragmentTransaction ft = this.getChildFragmentManager().beginTransaction();
+		
+		Bundle bundle = new Bundle();
+		bundle.putBoolean("returnClosest", true);
+		
+		Fragment fragment = new BusStopListFragment();
+		fragment.setArguments(bundle);
+		ft.add(fragment, "AutoSelectFrom");
+		
+		ft.commitAllowingStateLoss();
 	}
 
 	private boolean isBothStopSelected() {
@@ -600,6 +614,18 @@ public class ThereFragment extends Fragment implements OnItemClickListener {
 			lineNo.setText(data.linename);
 
 			return vi;
+		}
+	}
+
+	/**
+	 * Sent from BusStopListFragment when from stop has been selected automatically
+	 */
+	@Override
+	public void stopSelected(JSONObject item) {
+		try {
+			buttons[0].setText(item.getString("Name"));
+			dest[0] = item.getString("ID");
+		} catch (JSONException e) {
 		}
 	}
 }
