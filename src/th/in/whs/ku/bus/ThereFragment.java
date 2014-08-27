@@ -1,6 +1,8 @@
 package th.in.whs.ku.bus;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -66,6 +68,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 	private Handler handler;
 	private Bundle savedData;
 	private ArrayList<RequestHandle> requests = new ArrayList<RequestHandle>();
+	private boolean noAutoFromStop = false;
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -140,16 +143,21 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 			}
 
 		});
+		
+		if (dest[0] == null) {
+			autoSelectFromStop();
+		}
 
 		if (savedInstanceState != null) {
 			restoreViewState(savedInstanceState.getBundle("viewState"));
 		}
 
-		if (dest[0] == null) {
-			autoSelectFromStop();
-		}
-
 		handler = new Handler();
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
 	}
 
 	@Override
@@ -246,9 +254,8 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 		listView.setAdapter(adapter);
 
 		TextView busLine = (TextView) getView().findViewById(R.id.busLine);
-		// these if for empty is from that
-		// onActivityResult is fired before onResume thus the label will be
-		// overwritten by the saved state
+		// only load saved bus passing route and notification availability
+		// if there is nothing overwrote them (can happen from onActivityResult)
 		if (busLine.getText().equals(getString(R.string.line_passing))) {
 			busLine.setText(state.getCharSequence("lines"));
 			headerView.findViewById(R.id.notifyBtn).setEnabled(
@@ -259,9 +266,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 
 		String[] buttonTxt = state.getStringArray("buttons");
 		for (int i = 0; i < buttons.length; i++) {
-			if (buttons[i].getText().equals("")) {
-				buttons[i].setText(buttonTxt[i]);
-			}
+			buttons[i].setText(buttonTxt[i]);
 		}
 
 		if (isBothStopSelected()) {
@@ -304,10 +309,16 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		// Fragment x= (Fragment) crashy();
+//		 Fragment x= (Fragment) crashy();
 		if (requestCode == SELECT_INTENT_CODE && data != null) {
-			buttons[selectingIndex].setText(data.getStringExtra("name"));
+			// best way to do this is to overwrite in saved state
+			if(savedData instanceof Bundle){
+				String[] buttons = savedData.getStringArray("buttons");
+				buttons[selectingIndex] = data.getStringExtra("name");
+				savedData.putStringArray("buttons", buttons);
+			}
 			dest[selectingIndex] = data.getStringExtra("id");
+			noAutoFromStop = true;
 			if (isBothStopSelected()) {
 				loadBusInfo();
 			}
@@ -339,6 +350,9 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 	}
 
 	private void autoSelectFromStop() {
+		if(noAutoFromStop){
+			return;
+		}
 		if(this.getChildFragmentManager().findFragmentByTag("AutoSelectFrom") != null){
 			return;
 		}
@@ -622,6 +636,9 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 	 */
 	@Override
 	public void stopSelected(JSONObject item) {
+		if(noAutoFromStop){
+			return;
+		}
 		try {
 			buttons[0].setText(item.getString("Name"));
 			dest[0] = item.getString("ID");
