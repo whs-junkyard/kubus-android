@@ -1,16 +1,18 @@
 package th.in.whs.ku.bus;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import th.in.whs.ku.bus.api.API;
-import th.in.whs.ku.bus.api.Bus;
 import th.in.whs.ku.bus.api.BusStatus;
 import th.in.whs.ku.bus.api.BusStopList;
+import th.in.whs.ku.bus.api.JSONCallback;
 import th.in.whs.ku.bus.util.RoutePassingFormatter;
 import th.in.whs.ku.bus.util.TimeAgo;
 import android.annotation.TargetApi;
@@ -39,9 +41,8 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestHandle;
-import com.loopj.android.http.RequestParams;
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.Request;
 
 public class BusStopInfoFragment extends Fragment {
 	
@@ -60,7 +61,7 @@ public class BusStopInfoFragment extends Fragment {
 	private Handler handler = new Handler();
 	private Autorefresher autorefresh = new Autorefresher();
 	private View headerView;
-	private RequestHandle lastRequest;
+	private Call lastRequest;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -204,34 +205,39 @@ public class BusStopInfoFragment extends Fragment {
 	 * @throws JSONException
 	 */
 	private void loadInfo() throws JSONException{
-		RequestParams params = new RequestParams();
-		params.put("busstationid", stopData.get("ID"));
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("busstationid", stopData.getString("ID"));
 		Log.d("BusStopInfoFragment", "Downloading stop info...");
-		lastRequest = API.get("map/getBusStatusData", params, new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers,
-					JSONArray data) {
-            	infoLoaded(data);
-            }
-
+		lastRequest = API.get("map/getBusStatusData", params);
+		lastRequest.enqueue(new JSONCallback(){
 			@Override
-			public void onProgress(int bytesWritten, int totalSize) {
+			public void onFailure(Request req, IOException err) {
 				if(getActivity() == null){
 					return;
 				}
-				getActivity().setProgress((int) Math.ceil((bytesWritten/totalSize) * 10000));
+				getHandler().post(new Runnable(){
+					public void run(){
+						if(getActivity() == null){
+							return;
+						}
+						Toast.makeText(getActivity(), R.string.internet_error,
+								Toast.LENGTH_LONG).show();
+					}
+				});
+				Log.d("BusStopInfoFragment", "Error", err);
+			}
+			
+			@Override
+			public void callback(JSONArray data){
+				infoLoaded(data);
 			}
 
 			@Override
-			public void onFailure(int statusCode, Header[] headers,
-					String responseString, Throwable throwable) {
+			protected Handler getHandler() {
 				if(getActivity() == null){
-					// http://sentry.whs.in.th/kusmartbus/android/group/112/
-					// http://sentry.whs.in.th/kusmartbus/android/group/119/
-					return;
+					return null;
 				}
-				Toast.makeText(getActivity(), R.string.internet_error, Toast.LENGTH_LONG).show();
-				Log.d("BusStopInfoFragment", "Error", throwable);
+				return new Handler(getActivity().getMainLooper());
 			}
 		});
 	}
@@ -282,7 +288,7 @@ public class BusStopInfoFragment extends Fragment {
 			mapController.unregisterListener();
 		}
 		if(lastRequest != null){
-			lastRequest.cancel(true);
+			lastRequest.cancel();
 		}
 	}
 	

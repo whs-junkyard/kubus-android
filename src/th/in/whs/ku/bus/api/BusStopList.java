@@ -1,22 +1,22 @@
 package th.in.whs.ku.bus.api;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import th.in.whs.ku.bus.R;
 import th.in.whs.ku.bus.util.ListenerList;
-import android.os.Bundle;
+import android.content.Context;
+import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
-import com.loopj.android.http.JsonHttpResponseHandler;
+import com.squareup.okhttp.Request;
 
 public class BusStopList implements Parcelable, Cloneable {
 	private static BusStopList instance = new BusStopList();
@@ -70,6 +70,9 @@ public class BusStopList implements Parcelable, Cloneable {
 	}
 	public static BusStopList instance(){
 		return instance.clone();
+	}
+	public static void context(Context context){
+		instance.context = context;
 	}
 	public static void refresh(){
 		instance.loadData();
@@ -141,6 +144,7 @@ public class BusStopList implements Parcelable, Cloneable {
 	private boolean hasData = false;
 	private boolean isLoading = false;
 	private boolean hasError = false;
+	private Context context;
 	
 	private BusStopList(){}
 
@@ -160,14 +164,26 @@ public class BusStopList implements Parcelable, Cloneable {
 	private JSONObject getData(){
 		return data;
 	}
+	
+	public void setContext(Context context) {
+		this.context = context;
+	}
 
 	private void loadData(){
 		Log.d("BusStopList", "Downloading bus stop data");
 		isLoading = true;
-		API.get("appapi/mobileService/getRouteAndStop.php", null, new JsonHttpResponseHandler(){
+		API.get("appapi/mobileService/getRouteAndStop.php")
+		.enqueue(new JSONCallback(){
 			@Override
-			public void onSuccess(int statusCode, Header[] headers,
-					JSONObject resp) {
+			public void onFailure(Request req, IOException err) {
+				isLoading = false;
+				hasError = true;
+				Log.e("BusStopList API", "Download bus stop data failed", err);
+				error.fire();
+			}
+			
+			@Override
+			public void callback(JSONObject resp){
 				isLoading = false;
 				data = resp;
 				hasData = true;
@@ -178,21 +194,8 @@ public class BusStopList implements Parcelable, Cloneable {
 			}
 			
 			@Override
-			public void onFailure(int statusCode, Header[] headers,
-					Throwable throwable, JSONObject errorResponse) {
-				isLoading = false;
-				hasError = true;
-				Log.e("BusStopList API", "Download bus stop data failed", throwable);
-				error.fire();
-			}
-
-			@Override
-			public void onProgress(int bytesWritten, int totalSize) {
-				Bundle data = new Bundle();
-				data.putFloat("progress", bytesWritten/totalSize);
-				data.putInt("bytesWritten", bytesWritten);
-				data.putInt("totalSize", totalSize);
-				progress.fire(data);
+			protected Handler getHandler() {
+				return new Handler(context.getMainLooper());
 			}
 		});
 	}

@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="th.in.whs.ku.bus"
     android:versionCode="18"
-    android:versionName="1.9.2" android:installLocation="preferExternal">
+    android:versionName="1.10" android:installLocation="preferExternal">
 
     <uses-sdk
         android:minSdkVersion="8"

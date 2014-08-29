@@ -1,27 +1,34 @@
 package th.in.whs.ku.bus;
 
-import java.lang.reflect.Array;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.koushikdutta.async.http.socketio.Acknowledge;
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
 import th.in.whs.ku.bus.api.API;
 import th.in.whs.ku.bus.api.Bus;
 import th.in.whs.ku.bus.api.BusStatus;
 import th.in.whs.ku.bus.api.BusStopList;
+import th.in.whs.ku.bus.api.JSONCallback;
 import th.in.whs.ku.bus.util.RoutePassingFormatter;
 import th.in.whs.ku.bus.util.TimeAgo;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources.NotFoundException;
 import android.graphics.drawable.NinePatchDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -38,15 +45,9 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.HeaderViewListAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestHandle;
-import com.loopj.android.http.RequestParams;
 
 public class ThereFragment extends Fragment implements OnItemClickListener, StopSelectedInterface {
 
@@ -67,8 +68,8 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 	private LayoutInflater inflater;
 	private Handler handler;
 	private Bundle savedData;
-	private ArrayList<RequestHandle> requests = new ArrayList<RequestHandle>();
 	private boolean noAutoFromStop = false;
+	private Object tag = new Object();
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -97,49 +98,54 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 					return;
 				}
 				notifyBtn.setEnabled(false);
-				RequestParams params = new RequestParams();
-				params.add("stop", dest[0]);
-				List<String> passing = BusStopList.getPassingLine(dest[0],
-						dest[1]);
-				for (String lineId : passing) {
-					params.add("line[]", lineId);
-				}
-				params.add("backend", "gcm");
-				params.add("gcm_id", regId);
-				API.registerNotify(params, new AsyncHttpResponseHandler() {
+				
+				API.registerNotify(dest[0], BusStopList.getPassingLine(dest[0], dest[1]), regId)
+					.enqueue(new Callback(){
 
-					@Override
-					public void onSuccess(String content) {
-						if (!content.equals("ok")) {
-							AlertDialog.Builder alert = new AlertDialog.Builder(
-									getActivity());
-							alert.setMessage(content);
-							alert.show();
-							notifyBtn.setEnabled(true);
-						} else {
-							// http://sentry.whs.in.th/kusmartbus/android/group/158/
-							if (getActivity() != null) {
-								Toast.makeText(getActivity(),
-										R.string.notify_ok, Toast.LENGTH_LONG)
-										.show();
-							}
+						@Override
+						public void onFailure(Request req, final IOException error) {
+							new Handler(getActivity().getMainLooper()).post(new Runnable(){
+								public void run(){
+									// http://sentry.whs.in.th/kusmartbus/android/group/124/
+									if (getActivity() != null) {
+										Toast.makeText(getActivity(),
+												R.string.internet_error, Toast.LENGTH_LONG)
+												.show();
+									}
+									Log.e("ThereFragment",
+											"Unable to register for notification", error);
+								}
+							});
 						}
-					}
 
-					@Override
-					public void onFailure(int statusCode, Throwable error,
-							String content) {
-						// http://sentry.whs.in.th/kusmartbus/android/group/124/
-						if (getActivity() != null) {
-							Toast.makeText(getActivity(),
-									R.string.internet_error, Toast.LENGTH_LONG)
-									.show();
+						@Override
+						public void onResponse(final Response res)
+								throws IOException {
+							final String body = res.body().string();
+							new Handler(getActivity().getMainLooper()).post(new Runnable(){
+								public void run(){
+									try {
+										if (!body.equals("ok")) {
+											AlertDialog.Builder alert = new AlertDialog.Builder(
+													getActivity());
+											alert.setMessage(body);
+											alert.show();
+											notifyBtn.setEnabled(true);
+										} else {
+											// http://sentry.whs.in.th/kusmartbus/android/group/158/
+											if (getActivity() != null) {
+												Toast.makeText(getActivity(),
+														R.string.notify_ok, Toast.LENGTH_LONG)
+														.show();
+											}
+										}
+									} catch (NotFoundException e) {
+									}
+								}
+							});
 						}
-						Log.e("ThereFragment",
-								"Unable to register for notification", error);
-					}
-
-				});
+						
+					});
 			}
 
 		});
@@ -396,6 +402,8 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 		ArrayAdapter<?> adapter = (ArrayAdapter<?>) ((HeaderViewListAdapter) listView.getAdapter()).getWrappedAdapter();
 		adapter.clear();
 		adapter.notifyDataSetChanged();
+		
+		headerView.findViewById(R.id.notifyBtn).setEnabled(false);
 
 		loadAStopInfo(idFrom, 0);
 		loadAStopInfo(idTo, 1);
@@ -405,8 +413,6 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 		TextView passing = (TextView) headerView.findViewById(R.id.busLine);
 		List<String> passingLines = BusStopList
 				.getPassingLine(dest[0], dest[1]);
-		headerView.findViewById(R.id.notifyBtn).setEnabled(
-				passingLines.size() > 0);
 		if (passingLines.size() == 0) {
 			passing.setText(R.string.no_bus);
 		} else {
@@ -416,41 +422,40 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 	}
 
 	private void loadAStopInfo(String id, final int index) {
-		RequestParams params = new RequestParams();
+		Map<String, String> params = new HashMap<String, String>();
 		params.put("busstationid", id);
 		Log.d("ThereFragment", "loading stop " + id + " to " + index);
-		RequestHandle request = API.get(getActivity(), "map/getBusStatusData",
-				params, new JsonHttpResponseHandler() {
-					@Override
-					public void onSuccess(int statusCode, Header[] headers,
-							JSONArray loadedData) {
-						data[index] = loadedData;
-						processData();
-					}
-
-					@Override
-					public void onProgress(int bytesWritten, int totalSize) {
-						percentLoaded[index] = (float) bytesWritten
-								/ (float) totalSize;
-						updatePercentage();
-					}
-
-					@Override
-					public void onFailure(int statusCode, Header[] headers,
-							String responseString, Throwable throwable) {
+		Request request = API.getRequestBuilder("map/getBusStatusData", params)
+				.tag(tag)
+				.get()
+				.build();
+		API.client.newCall(request).enqueue(new JSONCallback() {
+			@Override
+			public void onFailure(Request req, IOException err){ 
+				Log.e("ThereFragment", "Error in " + index, err);
+				getHandler().post(new Runnable(){
+					public void run(){
 						Toast.makeText(getActivity(), R.string.internet_error,
 								Toast.LENGTH_LONG).show();
-						Log.e("ThereFragment", "Error in " + index, throwable);
 					}
 				});
-		requests.add(request);
+			}
+			
+			@Override
+			public void callback(JSONArray loadedData){
+				data[index] = loadedData;
+				processData();
+			}
+			
+			@Override
+			protected Handler getHandler() {
+				return new Handler(getActivity().getMainLooper());
+			}
+		});
 	}
 
 	private void stopRequests() {
-		for (RequestHandle request : requests) {
-			request.cancel(true);
-		}
-		requests.clear();
+		API.client.cancel(tag);
 	}
 
 	private void updatePercentage() {
@@ -500,6 +505,8 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 			}
 		}
 		adapter.notifyDataSetChanged();
+		
+		headerView.findViewById(R.id.notifyBtn).setEnabled(adapter.getCount() > 0);
 
 		setShowProgress(false);
 

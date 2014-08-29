@@ -18,8 +18,6 @@ import android.util.Log;
 import android.util.SparseArray;
 
 import com.codebutler.android_websockets.WebSocketClient;
-import com.joshdholtz.sentry.Sentry;
-import com.loopj.android.http.JsonHttpResponseHandler;
 import com.squareup.wire.Wire;
 
 public class BusPosition implements Parcelable, Cloneable {
@@ -147,10 +145,9 @@ public class BusPosition implements Parcelable, Cloneable {
 	}
 	
 	private void loadData(){
-		API.get("map/getbusposition", null, new JsonHttpResponseHandler(){
+		API.get("map/getbusposition").enqueue(new JSONCallback() {
 			@Override
-			public void onSuccess(int statusCode, Header[] headers,
-					JSONArray resp) {
+			public void callback(JSONArray resp){
 				try {
 					loadToMap(resp);
 				} catch (JSONException e) {
@@ -160,6 +157,10 @@ public class BusPosition implements Parcelable, Cloneable {
 				listeners.fire();
 			}
 			
+			@Override
+			protected Handler getHandler() {
+				return new Handler(context.getMainLooper());
+			}
 		});
 	}
 	

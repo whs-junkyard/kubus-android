@@ -1,50 +1,98 @@
 package th.in.whs.ku.bus.api;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import th.in.whs.ku.bus.BuildConfig;
-import android.content.Context;
+import android.net.Uri;
 import android.os.Build;
-import android.support.v4.app.FragmentActivity;
 
-import com.loopj.android.http.*;
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.FormEncodingBuilder;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
 
 public class API {
 	protected static final String APP_URL="http://kubus.netburzt.com/";
 	protected static final String BASE_URL="http://kusmartbus.netburzt.com/";
 	protected static final String STREAM_URL="http://madoka.whs.in.th:58439/";
 
-	private static AsyncHttpClient client = new AsyncHttpClient();
-
-	public static RequestHandle get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-		return client.get(getAbsoluteUrl(url), params, responseHandler);
+	public static final OkHttpClient client = new OkHttpClient();
+	public static String userAgent = "";
+	
+	public static Request.Builder getRequestBuilder(String url){
+		return getRequestBuilder(url, null);
 	}
 	
-	public static RequestHandle get(Context context, String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-		return client.get(context, getAbsoluteUrl(url), params, responseHandler);
-	}
-
-	public static RequestHandle post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-		return client.post(getAbsoluteUrl(url), params, responseHandler);
+	public static Request.Builder getRequestBuilder(String url, Map<String, String> params){
+		Uri.Builder builder = Uri.parse(getAbsoluteUrl(url)).buildUpon();
+		
+		if(params != null){
+			for(Map.Entry<String, String> entry : params.entrySet()){
+				builder.appendQueryParameter(entry.getKey(), entry.getValue());
+			}
+		}
+		
+		return new Request.Builder()
+			.addHeader("User-Agent", userAgent)
+			.url(builder.build().toString());
 	}
 	
-	public static RequestHandle post(Context context, String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-		return client.post(context, getAbsoluteUrl(url), params, responseHandler);
+	public static Call get(String url){
+		Request request = getRequestBuilder(url, null)
+				.get()
+				.build();
+		return client.newCall(request);
 	}
 	
-	public static RequestHandle registerNotify(RequestParams params, AsyncHttpResponseHandler responseHandler){
-		return client.post(STREAM_URL + "push/stop", params, responseHandler);
+	public static Call get(String url, Map<String, String> params){
+		Request request = getRequestBuilder(url, params)
+				.get()
+				.build();
+		return client.newCall(request);
+	}
+	
+	public static Call post(String url, Map<String, String> params){
+		FormEncodingBuilder builder = new FormEncodingBuilder();
+		
+		if(params != null){
+			for(Map.Entry<String, String> entry : params.entrySet()){
+				builder.add(entry.getKey(), entry.getValue());
+			}
+		}
+		
+		Request request = getRequestBuilder(url)
+				.post(builder.build())
+				.build();
+		return client.newCall(request);
+	}
+	
+	public static Call registerNotify(String stop, List<String> passingLine, String regId) {
+		FormEncodingBuilder builder = new FormEncodingBuilder();
+		
+		builder.add("backend", "gcm");
+		builder.add("stop", stop);
+		builder.add("gcm_id", regId);
+		for(String lineId : passingLine){
+			builder.add("line[]", lineId);
+		}
+		
+		Request request = getRequestBuilder(STREAM_URL + "push/stop")
+				.post(builder.build())
+				.build();
+		return client.newCall(request);
 	}
 
 	private static String getAbsoluteUrl(String relativeUrl) {
+		if(relativeUrl.startsWith("http://")){
+			return relativeUrl;
+		}
 		if(relativeUrl.startsWith("appapi/")){
 			return APP_URL + relativeUrl;
 		}
 		return BASE_URL + relativeUrl;
-	}
-
-	public static void cancel(Context context) {
-		client.cancelRequests(context, true);
 	}
 
 	public static void init(String version) {
@@ -62,6 +110,7 @@ public class API {
 	    	userAgent.append("; DEBUG");
 	    }
 	    userAgent.append(")");
-		client.setUserAgent(userAgent.toString());
+	    API.userAgent = userAgent.toString();
 	}
+	
 }

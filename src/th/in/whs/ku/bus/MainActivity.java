@@ -227,6 +227,8 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
             	Log.d("MainActivity", "BusList load state");
             	BusStopList.initialize(busPositionParcel);
             }
+        }else{
+        	BusStopList.context(this);
         }
         if(checkGooglePlayBool()){
         	BusStopList.refreshIfNoData();
