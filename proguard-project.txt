@@ -62,3 +62,6 @@
     public static int w(...);
     public static int d(...);
 }
+
+# okio proguard
+-dontwarn okio.**
