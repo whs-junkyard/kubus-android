@@ -19,6 +19,9 @@ abstract public class JSONCallback implements Callback {
 	
 	@Override
 	public void onResponse(Response req) throws IOException {
+		if(getHandler() == null){
+			return;
+		}
 		String body = req.body().string();
 		try{
 			final JSONArray obj = new JSONArray(body);
