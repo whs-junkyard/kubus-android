@@ -19,7 +19,7 @@ abstract public class JSONCallback implements Callback {
 	
 	@Override
 	public void onResponse(Response req) throws IOException {
-		if(getHandler() == null){
+		if(getHandler() == null || req.body() == null){
 			return;
 		}
 		String body = req.body().string();

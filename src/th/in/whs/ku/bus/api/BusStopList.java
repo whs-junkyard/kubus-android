@@ -179,7 +179,14 @@ public class BusStopList implements Parcelable, Cloneable {
 				isLoading = false;
 				hasError = true;
 				Log.e("BusStopList API", "Download bus stop data failed", err);
-				error.fire();
+				getHandler().post(new Runnable(){
+
+					@Override
+					public void run() {
+						error.fire();
+					}
+					
+				});
 			}
 			
 			@Override

@@ -431,17 +431,6 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 				.build();
 		API.client.newCall(request).enqueue(new JSONCallback() {
 			@Override
-			public void onFailure(Request req, IOException err){ 
-				Log.e("ThereFragment", "Error in " + index, err);
-				getHandler().post(new Runnable(){
-					public void run(){
-						Toast.makeText(getActivity(), R.string.internet_error,
-								Toast.LENGTH_LONG).show();
-					}
-				});
-			}
-			
-			@Override
 			public void callback(JSONArray loadedData){
 				data[index] = loadedData;
 				processData();
@@ -449,6 +438,9 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 			
 			@Override
 			protected Handler getHandler() {
+				if(getActivity() == null){
+					return null;
+				}
 				return new Handler(getActivity().getMainLooper());
 			}
 		});
