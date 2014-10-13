@@ -179,6 +179,9 @@ public class BusStopList implements Parcelable, Cloneable {
 				isLoading = false;
 				hasError = true;
 				Log.e("BusStopList API", "Download bus stop data failed", err);
+				if(getHandler() == null){
+					return;
+				}
 				getHandler().post(new Runnable(){
 
 					@Override
@@ -202,6 +205,9 @@ public class BusStopList implements Parcelable, Cloneable {
 			
 			@Override
 			protected Handler getHandler() {
+				if(context == null){
+					return null;
+				}
 				return new Handler(context.getMainLooper());
 			}
 		});

@@ -20,6 +20,11 @@ public class UriHandlerActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		
+		if(getIntent() == null || getIntent().getAction() == null){
+			finish();
+			return;
+		}
+		
 		if(getIntent().getAction().equals(Intent.ACTION_VIEW)){
 			Uri uri = this.getIntent().getData();
 			handleUri(uri);
