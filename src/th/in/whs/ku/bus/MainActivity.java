@@ -2,27 +2,19 @@ package th.in.whs.ku.bus;
 
 import im.delight.apprater.AppRater;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import th.in.whs.ku.bus.api.API;
 import th.in.whs.ku.bus.api.BusPosition;
 import th.in.whs.ku.bus.api.BusStopList;
-import th.in.whs.ku.bus.util.NFCBuilder;
 import th.in.whs.ku.bus.util.ListenerList.Listener;
-import android.annotation.SuppressLint;
+import th.in.whs.ku.bus.util.ExitMessageFragment;
+import th.in.whs.ku.bus.util.NFCBuilder;
 import android.annotation.TargetApi;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.nfc.NdefMessage;
@@ -35,7 +27,6 @@ import android.os.Message;
 import android.os.StrictMode;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
@@ -48,10 +39,8 @@ import android.view.Window;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.MapsInitializer;
-import com.joshdholtz.sentry.Sentry;
 
 public class MainActivity extends ActionBarActivity implements Handler.Callback, NFCSettableActivity {
 	
@@ -182,6 +171,10 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
     	case R.id.tagProgram:
     		Intent nfcIntent = new Intent(this, NFCProgramActivity.class);
     		startActivity(nfcIntent);
+    		return true;
+    	case R.id.reportMenu:
+    		Intent reportIntent = new Intent(this, ReportActivity.class);
+    		startActivity(reportIntent);
     		return true;
     	default:
     		return super.onOptionsItemSelected(item);

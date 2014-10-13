@@ -29,6 +29,17 @@
     <string name="sort_distance">ตามระยะทาง</string>
     <string name="sort_name">ตามตัวอักษร</string>
     
+    <!-- report  -->
+    <string name="report_menu">แนะนำ/รายงาน</string>
+    <string name="report_menu_short">แนะนำ</string>
+    <string name="report_bus">รายงานสาย:</string>
+    <string name="report_line_comment">ถ้ารายงานสายผิด กรุณาระบุสายที่ถูกต้อง</string>
+    <string name="report_type_line">สายไม่ตรง</string>
+    <string name="report_type_bug">แจ้งบั๊ก</string>
+    <string name="report_type_driver">รายงานคนขับ</string>
+    <string name="report_type_comment">ข้อเสนอแนะ / ความคิดเห็น</string>
+    <string name="report_thankyou">ขอบคุณสำหรับรายงาน เราจะรีบดำเนินการโดยเร็วที่สุด</string>
+    
     <!-- vote -->
     <string name="rate_title">โหวต KUSmartBus</string>
     <string name="rate_explanation">ถ้าถูกใจ KUSmartBus กรุณาให้คะแนน 5 ดาวบน Play Store</string>

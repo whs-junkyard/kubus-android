@@ -9,10 +9,16 @@
         android:orderInCategory="1000"
         android:icon="@drawable/ic_facebook"/>
     <item
-        android:id="@+id/tagProgram"
+        android:id="@+id/reportMenu"
         support:showAsAction="never"
         android:menuCategory="container"
         android:orderInCategory="2000"
+        android:title="@string/report_menu" android:titleCondensed="@string/report_menu_short"/>
+    <item
+        android:id="@+id/tagProgram"
+        support:showAsAction="never"
+        android:menuCategory="container"
+        android:orderInCategory="5000"
         android:title="@string/nfc_prog" android:icon="@android:drawable/ic_menu_upload"/>
 
 </menu>

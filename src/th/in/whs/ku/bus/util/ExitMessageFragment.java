@@ -1,4 +1,4 @@
-package th.in.whs.ku.bus;
+package th.in.whs.ku.bus.util;
 
 import android.app.AlertDialog;
 import android.app.Dialog;

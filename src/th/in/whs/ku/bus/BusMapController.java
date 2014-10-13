@@ -753,7 +753,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	
 	@Override
 	public void onInfoWindowClick(Marker marker) {
-		if(!allowBusStopClick){
+		if(!allowBusStopClick || context == null){
 			return;
 		}
 		for(StopMarker mark : stopMarker){
@@ -771,7 +771,16 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 					}
 				} catch (JSONException e) {
 				}
-				break;
+				return;
+			}
+		}
+		for(int i = 0; i < markers.size(); i++){
+			BusMarker mark = markers.valueAt(i);
+			if(mark.marker.equals(marker)){
+				Intent reportIntent = new Intent(context, ReportActivity.class);
+				reportIntent.putExtra(ReportActivity.REPORT_BUS, mark.bus.name);
+				context.startActivity(reportIntent);
+				return;
 			}
 		}
 	}

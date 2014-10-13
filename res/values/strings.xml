@@ -29,6 +29,17 @@
     <string name="sort_distance">By distance</string>
     <string name="sort_name">By name</string>
     
+    <!-- report  -->
+    <string name="report_menu">Suggestion/Report</string>
+    <string name="report_menu_short">Suggestion</string>
+    <string name="report_bus">Reporting bus:</string>
+    <string name="report_line_comment">If reporting incorrect line, please enter correct line number.</string>
+    <string name="report_type_line">Incorrect line</string>
+    <string name="report_type_bug">Bug report</string>
+    <string name="report_type_driver">Driver</string>
+    <string name="report_type_comment">Comments / Suggestion</string>
+    <string name="report_thankyou">Thank you for your submission. Your report will be processed as soon as possible.</string>
+    
     <!-- vote -->
     <string name="rate_title">Rate KUSmartBus</string>
     <string name="rate_explanation">If KUSmartBus is helpful to you, please give us 5 stars in Play Store.</string>
