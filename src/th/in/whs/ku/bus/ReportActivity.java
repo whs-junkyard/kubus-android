@@ -17,6 +17,8 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -41,12 +43,7 @@ public class ReportActivity extends ActionBarActivity {
 	
 	public static String REPORT_BUS = "REPORT_BUS";
 	
-	private static int[] reportTypesInt = {
-		R.string.report_type_line,
-		R.string.report_type_bug,
-		R.string.report_type_driver,
-		R.string.report_type_comment
-	};
+	private int[] reportTypesInt = null;
 	
 	private String[] reportType = null;
 
@@ -60,6 +57,7 @@ public class ReportActivity extends ActionBarActivity {
 			((TextView) findViewById(R.id.line)).setText(intent.getStringExtra(REPORT_BUS));
 		}else{
 			findViewById(R.id.reportLine).setVisibility(View.GONE);
+			((TextView) findViewById(R.id.textView3)).setText(R.string.report_line_map);
 		}
 		
 		Spinner type = (Spinner) findViewById(R.id.spinner1);
@@ -67,12 +65,33 @@ public class ReportActivity extends ActionBarActivity {
 		
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
+		
+		EditText text = (EditText) findViewById(R.id.editText1);
+		text.addTextChangedListener(new TextWatcher() {
+			
+			@Override
+			public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
+					int arg3) {
+			}
+			
+			@Override
+			public void afterTextChanged(Editable arg0) {
+				supportInvalidateOptionsMenu();
+			}
+		});
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.submit, menu);
+		
+		menu.findItem(R.id.submit).setEnabled(getBody().length() > 0);
+		
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -91,6 +110,21 @@ public class ReportActivity extends ActionBarActivity {
 	}
 	
 	private String[] buildReportTypes(){
+		Intent intent = getIntent();
+		if(intent.hasExtra(REPORT_BUS)){
+			reportTypesInt = new int[]{
+				R.string.report_type_line,
+				R.string.report_type_driver,
+				R.string.report_type_comment,
+				R.string.report_type_bug,
+			};
+		}else{
+			reportTypesInt = new int[]{
+				R.string.report_type_comment,
+				R.string.report_type_bug
+			};
+		}
+		
 		String[] out = new String[reportTypesInt.length];
 		for(int i = 0; i < reportTypesInt.length; i++){
 			out[i] = getString(reportTypesInt[i]);

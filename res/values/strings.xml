@@ -33,6 +33,7 @@
     <string name="report_menu">Suggestion/Report</string>
     <string name="report_menu_short">Suggestion</string>
     <string name="report_bus">Reporting bus:</string>
+    <string name="report_line_map">To report incorrect line or driver, select bus on map view and tap the infobox.</string>
     <string name="report_line_comment">If reporting incorrect line, please enter correct line number.</string>
     <string name="report_type_line">Incorrect line</string>
     <string name="report_type_bug">Bug report</string>

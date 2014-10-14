@@ -33,6 +33,7 @@
     <string name="report_menu">แนะนำ/รายงาน</string>
     <string name="report_menu_short">แนะนำ</string>
     <string name="report_bus">รายงานสาย:</string>
+    <string name="report_line_map">ถ้ารายงานสายผิดหรือคนขับ ให้เลือกรถจากแผนที่และแตะกล่องที่ปรากฏ</string>
     <string name="report_line_comment">ถ้ารายงานสายผิด กรุณาระบุสายที่ถูกต้อง</string>
     <string name="report_type_line">สายไม่ตรง</string>
     <string name="report_type_bug">แจ้งบั๊ก</string>
