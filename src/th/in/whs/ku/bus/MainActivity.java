@@ -53,7 +53,6 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
 
     private BusPositionRefresher refresher = new BusPositionRefresher();
     private Handler handler = new Handler(this);
-    private boolean canRefresh = true;
     private Fragment currentFragment;
     private GCMController gcm;
     private NfcAdapter nfc;
@@ -76,12 +75,11 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
 	    			.setClassInstanceLimit(BusStopFragment.class, 1)
 	    			.setClassInstanceLimit(BusStopInfoFragment.class, 1)
 	    			.setClassInstanceLimit(BusStopListFragment.class, 1)
-	    			.setClassInstanceLimit(BusMapFragment.class, 1)
+	    			.setClassInstanceLimit(MapFragment.class, 1)
 	    			.setClassInstanceLimit(ThereFragment.class, 1)
 	    			.setClassInstanceLimit(API.class, 1)
 	    			.setClassInstanceLimit(BusStopList.class, 1)
 	    			.setClassInstanceLimit(BusPosition.class, 1)
-	    			.setClassInstanceLimit(BusMapController.class, 1)
 	    			.build());
     		}else{
     			StrictMode.enableDefaults();
@@ -100,7 +98,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
         	return;
         }
         
-        MapsInitializer.initialize(this);
+        MapsInitializer.initialize(getBaseContext());
         
         this.restoreBusPosition(savedInstanceState);
 		this.restoreBusList(savedInstanceState);
@@ -115,7 +113,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
         
         actionBar.addTab(actionBar.newTab()
         		.setText(R.string.map_title)
-        		.setTabListener(new TabHandler(BusMapFragment.class, "BusMap")));
+        		.setTabListener(new TabHandler(MapFragment.class, "BusMap")));
         
         actionBar.addTab(actionBar.newTab()
         		.setText(R.string.route_title)
@@ -199,7 +197,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
     private void restoreBusPosition(Bundle savedInstanceState){
         if(savedInstanceState != null){
         	BusPosition busPositionParcel = (BusPosition) savedInstanceState.getParcelable("BusPosition");
-        	busPositionParcel.setContext(this);
+        	busPositionParcel.setContext(getBaseContext());
         	if(busPositionParcel != null){
             	Log.d("MainActivity", "BusPosition load state");
             	BusPosition.initialize(busPositionParcel);
@@ -221,7 +219,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
             	BusStopList.initialize(busPositionParcel);
             }
         }else{
-        	BusStopList.context(this);
+        	BusStopList.context(getBaseContext());
         }
         if(checkGooglePlayBool()){
         	BusStopList.refreshIfNoData();

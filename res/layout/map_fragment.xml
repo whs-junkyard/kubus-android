@@ -1,20 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rootMap"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <com.google.android.gms.maps.MapView
+    <FrameLayout
         android:id="@+id/map"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        map:cameraTargetLat="13.848914"
-        map:cameraTargetLng="100.572238"
-        map:cameraZoom="14.5" >
-
-    </com.google.android.gms.maps.MapView>
-
+        android:layout_height="match_parent" />
+    
     <ProgressBar
         android:id="@+id/progress"
         style="?android:attr/progressBarStyleLarge"

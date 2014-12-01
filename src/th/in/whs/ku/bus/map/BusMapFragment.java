@@ -1,12 +1,14 @@
-package th.in.whs.ku.bus;
+package th.in.whs.ku.bus.map;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import th.in.whs.ku.bus.MainActivity;
+import th.in.whs.ku.bus.R;
+import th.in.whs.ku.bus.ReportActivity;
 import th.in.whs.ku.bus.api.Bus;
 import th.in.whs.ku.bus.api.BusPosition;
 import th.in.whs.ku.bus.api.BusStopList;
@@ -14,133 +16,168 @@ import th.in.whs.ku.bus.util.BusColor;
 import th.in.whs.ku.bus.util.ListenerList;
 import th.in.whs.ku.bus.util.NearestLineToPoint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.ActivityManagerCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
+import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-/**
- * Bus map controller for using with Google Maps Android v2
- * Usage:
- * BusMapController controller = new BusMapController(this, map.getMap());
- * 
- * To draw bus:
- * controller.registerListener();
- * and in your onPause/onResume call the method of the same name on this class
- * and unregisterListener in your onDestroy to prevent timer leak
- * @deprecated
- */
-public class BusMapController implements OnInfoWindowClickListener, OnMarkerClickListener, OnMapClickListener {
-//	private static final float IN_PARK_ALPHA = 0.2f;
+public class BusMapFragment extends Fragment implements OnInfoWindowClickListener, OnMarkerClickListener, OnMapClickListener {
+	
 	private static final float OUT_OF_SERVICE_ALPHA = 0.6f;
-
-	/**
-	 * Helper method to get bus color
-	 * @param lineid
-	 * @return Color
-	 */
-	public static int getColor(int lineid){
-    	return BusColor.getColor(lineid);
-    }
+	private static final int VIEW_ID = 165189189;
+	private SupportMapFragment fragment;
 	
 	private GoogleMap map;
-	private Context context;
+
+	public BusMapFragment(){
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		FrameLayout view = new FrameLayout(inflater.getContext());
+		view.setId(VIEW_ID);
+		FragmentTransaction tx = getChildFragmentManager().beginTransaction();
+		GoogleMapOptions options = (GoogleMapOptions) getArguments().getParcelable("option");
+		fragment = SupportMapFragment.newInstance(options);
+		tx.replace(VIEW_ID, fragment, "map");
+		tx.commitAllowingStateLoss();
+		
+		loadArguments();
+		
+		return view;
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		this.map = fragment.getMap();
+		if(map == null){
+			throw new IllegalStateException("Map is not defined");
+		}
+		map.setMyLocationEnabled(true);
+		map.setOnInfoWindowClickListener(this);
+		map.setOnMarkerClickListener(this);
+		map.setOnMapClickListener(this);
+		registerListener();
+	}
+
+	/**
+	 * Reconnect to busposition service
+	 */
+	public void onResume(){
+		super.onResume();
+		if(listenerId != -1){
+			BusPosition.wsConnect();
+		}
+	}
+
+	public void onLowMemory(){
+		super.onLowMemory();
+		BusIconCache.instance.evictAll();
+		DirectionIconCache.instance.evictAll();
+		StopIconCache.instance.evictAll();
+	}
+
+	/**
+	 * Disconnect from busposition service
+	 */
+	public void onPause(){
+		super.onPause();
+		BusPosition.wsDisconnect();
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+		unregisterListener();
+	}
+	
+	private void loadArguments(){
+		Bundle args = getArguments();
+		if(args.containsKey("filter")){
+			ArrayList<Parcelable> filters = args.getParcelableArrayList("filter");
+			clearFilter();
+			for(Parcelable filter : filters){
+				addFilter((Filter) filter);
+			}
+		}
+		if(args.containsKey("filterActive")){
+			setFilterActive(args.getBoolean("filterActive"));
+		}
+		if(args.containsKey("allowBusStopClick")){
+			setAllowBusStopClick(args.getBoolean("allowBusStopClick"));
+		}
+		if(args.containsKey("drawPolyline")){
+			drawPolyline(args.getInt("drawPolyline"));
+		}
+		if(args.containsKey("drawPolylineRoute")){
+			String[] route = args.getStringArray("drawPolylineRoute");
+			drawPolyline(route[0], route[1], route[2]);
+		}
+	}
+	
+	//
+	// network code
+	//
+
+	private int listenerId = -1;
+	/**
+	 * Connect to the bus position service and show bus in map
+	 */
+	private void registerListener(){
+		BusPosition.wsConnect();
+		listenerId = BusPosition.registerUpdateListener(new ListenerList.Listener(){
+	
+			@Override
+			public void onFired() {
+				update(BusPosition.gets());
+			}
+			
+		}, true);
+	}
+
+	/**
+	 * Disconnect from the bus position service
+	 */
+	private void unregisterListener(){
+		BusPosition.removeUpdateListener(listenerId);
+		listenerId = -1;
+		BusPosition.wsDisconnect();
+	}
+
 	/**
 	 * Array of bus markers
 	 * Key is bus id
 	 */
 	private SparseArray<BusMarker> markers = new SparseArray<BusMarker>();
-	private int listenerId = -1;
-	private boolean useFilter = false;
-	private ArrayList<Filter> filter = new ArrayList<Filter>();
-	private Polyline polyline;
-	private String currentPolyline = "0";
-	/**
-	 * Array of bus stop markers
-	 */
-	private ArrayList<StopMarker> stopMarker = new ArrayList<StopMarker>();
-	private ArrayList<Marker> directionMarker = new ArrayList<Marker>();
-	/**
-	 * How the polyline become visible
-	 * 0: no (no call yet)
-	 * 1: yes (direct call to drawPolyline)
-	 * 2: no, but drawn by marker tap (onMarkerClick)
-	 */
-	private int polylineRequestedByUser = 0;
-	private boolean allowBusStopClick = true;
-	
-	public BusMapController(Context context, GoogleMap map){
-		this.context = context;
-		this.map = map;
-		if(map == null){
-			throw new IllegalStateException("Map is not defined");
-		}
-		map.setOnInfoWindowClickListener(this);
-		map.setOnMarkerClickListener(this);
-		map.setOnMapClickListener(this);
-	}
-	
-	/**
-	 * Is the filter enabled?
-	 * @param set true to enable filter, false otherwise
-	 * @see addFilter
-	 */
-	public void setFilterActive(boolean set){
-		this.useFilter = set;
-		update(BusPosition.gets());
-	}
-	
-	public boolean getFilterActive(){
-		return this.useFilter;
-	}
-	
-	/**
-	 * Filter is used to show only information of interest 
-	 * @param item
-	 */
-	public void addFilter(Filter item){
-		if(filter.contains(item)){
-			return;
-		}
-		filter.add(item);
-		if(useFilter){
-			update(BusPosition.gets());
-		}
-	}
-	
-	public boolean removeFilter(Filter item){
-		boolean out = filter.remove(item);
-		if(out && useFilter){
-			update(BusPosition.gets());
-		}
-		return out;
-	}
-	
-	public void clearFilter(){
-		boolean update = filter.size() > 0;
-		filter.clear();
-		if(update && useFilter){
-			update(BusPosition.gets());
-		}
-	}
-	
 	/**
 	 * Redraw
 	 * @param data Bus position data from BusPosition.gets()
@@ -175,7 +212,6 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			}else{
 				marker = busMarker.marker;
 				
-				// i don't think this check work. it'll always fire due to floating point difference
 				if(!bus.isLocationEqual(marker.getPosition())){
 					LatLng latlng = new LatLng(bus.latitude, bus.longitude);
 					marker.setPosition(latlng);
@@ -189,18 +225,18 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			if(lineid == 0 || bus.isinpark){
 				marker.setTitle(bus.name);
 				if(bus.isinpark){
-					marker.setSnippet(context.getString(R.string.bus_parking));
+					marker.setSnippet(getString(R.string.bus_parking));
 				}else{
-					marker.setSnippet(context.getString(R.string.bus_no_line));
+					marker.setSnippet(getString(R.string.bus_no_line));
 				}
 			}else{
-				marker.setTitle(String.format(context.getString(R.string.bus_line), lineid));
+				marker.setTitle(String.format(getString(R.string.bus_line), lineid));
 				marker.setSnippet(bus.name);
 			}
 			
 			if(newlyCreated || busMarker.bus.lineid != lineid){
 				Log.d("BusMapController", "Requesting icon "+bus.lineid+" id "+bus.id);
-				BitmapDescriptor icon = getBusIcon(bus);
+				BitmapDescriptor icon = BusIconCache.instance.getCache(bus.lineid);
 				marker.setIcon(icon);
 			}
 			
@@ -226,7 +262,80 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			markers.remove(removeKey);
 		}
 	}
-	
+
+	public Marker get(int id){
+		BusMarker out = markers.get(id);
+		if(out == null){
+			return null;
+		}
+		return out.marker;
+	}
+
+	private boolean useFilter = false;
+	private ArrayList<Filter> filter = new ArrayList<Filter>();
+	/**
+	 * Is the filter enabled?
+	 * @param set true to enable filter, false otherwise
+	 * @see addFilter
+	 */
+	public void setFilterActive(boolean set){
+		this.useFilter = set;
+		update(BusPosition.gets());
+	}
+
+	public boolean getFilterActive(){
+		return this.useFilter;
+	}
+
+	/**
+	 * Filter is used to show only information of interest 
+	 * @param item
+	 */
+	public void addFilter(Filter item){
+		if(filter.contains(item)){
+			return;
+		}
+		filter.add(item);
+		if(useFilter){
+			update(BusPosition.gets());
+		}
+	}
+
+	public boolean removeFilter(Filter item){
+		boolean out = filter.remove(item);
+		if(out && useFilter){
+			update(BusPosition.gets());
+		}
+		return out;
+	}
+
+	public void clearFilter(){
+		boolean update = filter.size() > 0;
+		filter.clear();
+		if(update && useFilter){
+			update(BusPosition.gets());
+		}
+	}
+
+	/**
+	 * Array of bus stop markers
+	 */
+	private ArrayList<StopMarker> stopMarker = new ArrayList<StopMarker>();
+	private ArrayList<Marker> directionMarker = new ArrayList<Marker>();
+	private Polyline polyline;
+	private String currentPolyline = "0";
+	private enum PolylineRequest {
+		NO, // no polyline is visible
+		USER, // the polyline is draw by drawPolyline
+		BUS // the polyline is drawn by tapping on bus marker
+	};
+	/**
+	 * How the polyline become visible
+	 * 0: no (no call yet)
+	 * 1: yes (direct call to drawPolyline)
+	 * 2: no, but drawn by marker tap (onMarkerClick)
+	 */
+	private PolylineRequest polylineRequestedByUser = PolylineRequest.NO;
 	/**
 	 * Checker for filter
 	 */
@@ -249,7 +358,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void drawPolyline(final String lineId, final String from, final String to){
-		polylineRequestedByUser = 1;
+		polylineRequestedByUser = PolylineRequest.USER;
 		
 		JSONObject data = BusStopList.data();
 		if(data == null){
@@ -317,7 +426,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	}
 	
 	public void drawPolyline(String lineId){
-		polylineRequestedByUser = 1;
+		polylineRequestedByUser = PolylineRequest.USER;
 		_drawPolyline(lineId);
 	}
 	
@@ -347,7 +456,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			return;
 		}
 		
-		int color = context.getResources().getColor(getColor(Integer.valueOf(lineId)));
+		int color = getResources().getColor(BusColor.getColor(Integer.valueOf(lineId)));
 		
 		boolean foundStart = fromStop == null;
 		boolean foundStop = toStop == null;
@@ -361,7 +470,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			}
 			JSONArray line = data.getJSONArray(lineId);
 			JSONObject stopData = listRoot.getJSONObject("Stop");
-			BitmapDescriptor icon = getStopIcon(lineId);
+			BitmapDescriptor icon = StopIconCache.instance.getCache(lineId);
 			
 			stopMarker.ensureCapacity(line.length());
 			
@@ -425,10 +534,10 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 			LatLng lastItem = new LatLng(initialItem[0], initialItem[1]);
 			PolylineOptions pol = new PolylineOptions().width(5).color(color);
 			
-			// seems that drawing direction arrow is too much for low ram devices
 			BitmapDescriptor directionIcon = null;
-			if(!ActivityManagerCompat.isLowRamDevice((ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE))){
-				directionIcon = getDirectionIcon(lineId);
+			// seems that drawing direction arrow is too much for low ram devices
+			if(!ActivityManagerCompat.isLowRamDevice((ActivityManager) getActivity().getSystemService(Context.ACTIVITY_SERVICE))){
+				directionIcon = DirectionIconCache.instance.getCache(lineId);
 			}
 			
 			for(int loop=0; loop<2; loop++){
@@ -508,27 +617,14 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 	}
 	
 	/**
-	 * Convert array of string of float number to array of float
-	 * @param str String of float numbers
-	 * @return Float array
-	 */
-	private double[] toDouble(String[] str){
-		double[] out = new double[str.length];
-		for (int i = 0; i < str.length; i++) {
-			out[i] = Double.valueOf(str[i]);
-		}
-		return out;
-	}
-	
-	/**
 	 * Hide all polylines
 	 */
 	public void clearPolyline(){
-		polylineRequestedByUser = 0;
+		polylineRequestedByUser = PolylineRequest.NO;
 		currentPolyline = "0";
 		_clearPolyline();
 	}
-	
+
 	private void _clearPolyline(){
 		if(polyline == null){
 			return;
@@ -543,127 +639,21 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		}
 		directionMarker.clear();
 	}
-	
-	public Marker get(int id){
-		BusMarker out = markers.get(id);
-		if(out == null){
-			return null;
-		}
-		return out.marker;
-	}
-	
-	private static HashMap<String, BitmapDescriptor> directionIconCache = new HashMap<String, BitmapDescriptor>();
-	
+
 	/**
-	 * Get a stop icon (or cached one) for use in map
-	 * @param lineId Line ID
-	 * @return BitmapDescriptor
+	 * Convert array of string of float number to array of float
+	 * @param str String of float numbers
+	 * @return Float array
 	 */
-	public BitmapDescriptor getDirectionIcon(String lineId){
-		if(lineId.equals("6")){
-			lineId = "4";
+	private double[] toDouble(String[] str){
+		double[] out = new double[str.length];
+		for (int i = 0; i < str.length; i++) {
+			out[i] = Double.valueOf(str[i]);
 		}
-		BitmapDescriptor out = directionIconCache.get(lineId);
-		if(out != null){
-			return out;
-		}
-		out = getNewDirectionIcon(lineId);
-		directionIconCache.put(lineId, out);
 		return out;
 	}
-	
-	private BitmapDescriptor getNewDirectionIcon(String lineId) {
-		switch(Integer.parseInt(lineId)){
-		case 1:
-			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_red);
-		case 2:
-			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_blue);
-		case 3:
-			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_green);
-		case 4:
-			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_yellow);
-		case 5:
-			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_black);
-		default:
-			return BitmapDescriptorFactory.fromResource(R.drawable.chevron_gray);
-		}
-	}
-	
-	private static SparseArray<BitmapDescriptor> busIconCache = new SparseArray<BitmapDescriptor>();
-	
-	/**
-	 * Get a bus icon (or cached one) for use in map
-	 * @param bus Bus object
-	 * @return BitmapDescriptor
-	 */
-	public BitmapDescriptor getBusIcon(Bus bus){
-		int lineid = bus.lineid;
-		if(lineid == 6){
-			lineid = 4;
-		}
-		BitmapDescriptor out = busIconCache.get(lineid);
-		if(out != null){
-			return out;
-		}
-		out = getNewBusIcon(lineid);
-		busIconCache.put(lineid, out);
-		return out;
-	}
-	
-	public BitmapDescriptor getNewBusIcon(int lineid){
-		switch(lineid){
-		case 1:
-			return BitmapDescriptorFactory.fromResource(R.drawable.bus_red);
-		case 2:
-			return BitmapDescriptorFactory.fromResource(R.drawable.bus_blue);
-		case 3:
-			return BitmapDescriptorFactory.fromResource(R.drawable.bus_green);
-		case 4:
-			return BitmapDescriptorFactory.fromResource(R.drawable.bus_yellow);
-		case 5:
-			return BitmapDescriptorFactory.fromResource(R.drawable.bus_black);
-		default:
-			return BitmapDescriptorFactory.fromResource(R.drawable.bus_gray);
-		}
-	}
-	
-	private static HashMap<String, BitmapDescriptor> stopIconCache = new HashMap<String, BitmapDescriptor>();
-	
-	/**
-	 * Get a stop icon (or cached one) for use in map
-	 * @param lineId Line ID
-	 * @return BitmapDescriptor
-	 */
-	public BitmapDescriptor getStopIcon(String lineId){
-		if(lineId.equals("6")){
-			lineId = "4";
-		}
-		BitmapDescriptor out = stopIconCache.get(lineId);
-		if(out != null){
-			return out;
-		}
-		out = getNewStopIcon(lineId);
-		stopIconCache.put(lineId, out);
-		return out;
-	}
-	
-	private BitmapDescriptor getNewStopIcon(String lineId) {
-		int id = Integer.valueOf(lineId);
-		switch(id){
-		case 1:
-			return BitmapDescriptorFactory.fromResource(R.drawable.pin_red);
-		case 2:
-			return BitmapDescriptorFactory.fromResource(R.drawable.pin_blue);
-		case 3:
-			return BitmapDescriptorFactory.fromResource(R.drawable.pin_green2);
-		case 4:
-			return BitmapDescriptorFactory.fromResource(R.drawable.pin_yellow);
-		case 5:
-			return BitmapDescriptorFactory.fromResource(R.drawable.pin_black);
-		default:
-			return BitmapDescriptorFactory.fromResource(R.drawable.pin_gray);
-		}
-	}
+
+	private boolean allowBusStopClick = true;
 
 	public boolean isAllowBusStopClick() {
 		return allowBusStopClick;
@@ -678,79 +668,24 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		this.allowBusStopClick = allowBusStopClick;
 	}
 
-	/**
-	 * Connect to the bus position service and show bus in map
-	 * If you use this, make sure you use onPause/onResume method
-	 * in your activity/fragment and unregisterListener in your onDestroy
-	 */
-	public int registerListener(){
-		if(listenerId != -1){
-			return listenerId;
-		}
-		BusPosition.wsConnect();
-		listenerId = BusPosition.registerUpdateListener(new ListenerList.Listener(){
-
-			@Override
-			public void onFired() {
-				update(BusPosition.gets());
-			}
-			
-		}, true);
-		return listenerId;
-	}
-	
-	/**
-	 * Disconnect from the bus position service
-	 * Make sure you run this on destroy when using registerListener
-	 */
-	public void unregisterListener(){
-		BusPosition.removeUpdateListener(listenerId);
-		listenerId = -1;
-		BusPosition.wsDisconnect();
-	}
-	
-	/**
-	 * Reconnect to busposition service
-	 */
-	public void onResume(){
-		if(listenerId != -1){
-			BusPosition.wsConnect();
-		}
-	}
-	
-	/**
-	 * Disconnect from busposition service
-	 */
-	public void onPause(){
-		BusPosition.wsDisconnect();
-	}
-	
-	/**
-	 * Call this in your onLowMemory
-	 */
-	public void onLowMemory(){
-		directionIconCache.clear();
-		busIconCache.clear();
-		stopIconCache.clear();
-	}
-	
 	@Override
 	public void onInfoWindowClick(Marker marker) {
-		if(!allowBusStopClick || context == null){
+		Activity activity = getActivity();
+		if(!allowBusStopClick || activity == null){
 			return;
 		}
 		for(StopMarker mark : stopMarker){
 			if(mark.marker.equals(marker)){
 				try {
 					// try opening by fragment first
-					if(context instanceof MainActivity){
-						MainActivity activity = (MainActivity) context;
+					if(activity instanceof MainActivity){
+						MainActivity main = (MainActivity) activity;
 						Log.d("BusMapController", mark.stop.toString());
-						activity.showBusStop(mark.stop);
+						main.showBusStop(mark.stop);
 					}else{
-						Intent intent = new Intent(context, MainActivity.class);
+						Intent intent = new Intent(activity, MainActivity.class);
 						intent.putExtra(MainActivity.OPEN_STOP, mark.stop.getInt("ID"));
-						context.startActivity(intent);
+						activity.startActivity(intent);
 					}
 				} catch (JSONException e) {
 				}
@@ -760,9 +695,9 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		for(int i = 0; i < markers.size(); i++){
 			BusMarker mark = markers.valueAt(i);
 			if(mark.marker.equals(marker)){
-				Intent reportIntent = new Intent(context, ReportActivity.class);
+				Intent reportIntent = new Intent(activity, ReportActivity.class);
 				reportIntent.putExtra(ReportActivity.REPORT_BUS, mark.bus.name);
-				context.startActivity(reportIntent);
+				activity.startActivity(reportIntent);
 				return;
 			}
 		}
@@ -770,14 +705,14 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 
 	@Override
 	public boolean onMarkerClick(Marker marker) {
-		if(polylineRequestedByUser == 1){
+		if(polylineRequestedByUser == PolylineRequest.USER){
 			return false;
 		}
 		for(int i=0; i<markers.size(); i++){
 			if(markers.valueAt(i).marker.equals(marker)){
 				int busid = markers.keyAt(i);
 				Bus bus = BusPosition.get(busid);
-				polylineRequestedByUser = 2;
+				polylineRequestedByUser = PolylineRequest.BUS;
 				String lineid = String.valueOf(bus.lineid);
 				if(lineid.equals("6")){
 					lineid = "4";
@@ -792,28 +727,11 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 
 	@Override
 	public void onMapClick(LatLng point) {
-		if(polylineRequestedByUser == 2){
+		if(polylineRequestedByUser == PolylineRequest.BUS){
 			clearPolyline();
 		}
 	}
 
-	public static class Filter{
-		/**
-		 * BUS: Filter by bus ID (1 bus)
-		 * LINE: Filter by line ID (all bus of that line)
-		 */
-		public static enum FilterType {
-			BUS,
-			LINE
-		}
-		public FilterType type;
-		public Integer value;
-		public Filter(FilterType type, Integer value) {
-			this.type = type;
-			this.value = value;
-		}
-	}
-	
 	private class BusMarker{
 		public Bus bus;
 		public Marker marker;
@@ -828,8 +746,12 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		public Marker marker;
 		public JSONObject stop;
 		public StopMarker(Marker marker, JSONObject stop) {
+			if(marker == null){
+				throw new IllegalArgumentException("marker is null");
+			}
 			this.marker = marker;
 			this.stop = stop;
 		}
 	}
+	
 }

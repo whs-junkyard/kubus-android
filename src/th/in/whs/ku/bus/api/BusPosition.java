@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 
-import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 

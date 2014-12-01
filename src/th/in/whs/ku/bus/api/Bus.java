@@ -1,8 +1,5 @@
 package th.in.whs.ku.bus.api;
 
-import android.annotation.SuppressLint;
-import android.util.Log;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -11,11 +8,12 @@ import java.util.Date;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.google.android.gms.maps.model.LatLng;
-
-import th.in.whs.ku.bus.BusMapController;
-import th.in.whs.ku.bus.R;
 import th.in.whs.ku.bus.protobuf.Packet;
+import th.in.whs.ku.bus.util.BusColor;
+import android.annotation.SuppressLint;
+import android.util.Log;
+
+import com.google.android.gms.maps.model.LatLng;
 
 public class Bus{
 	public int id;
@@ -104,7 +102,7 @@ public class Bus{
 		}
     }
     public int getColor(){
-    	return BusMapController.getColor(lineid);
+    	return BusColor.getColor(lineid);
     }
     
     public boolean equals(Bus b){

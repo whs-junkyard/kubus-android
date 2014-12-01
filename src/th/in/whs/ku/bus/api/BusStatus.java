@@ -5,12 +5,11 @@ import java.io.IOException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.squareup.wire.Wire;
-
-import th.in.whs.ku.bus.protobuf.Packet;
 import th.in.whs.ku.bus.util.TimeAgo;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import com.squareup.wire.Wire;
 
 public class BusStatus implements Parcelable{
 	public int id;

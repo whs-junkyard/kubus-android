@@ -106,9 +106,9 @@ public class BusStopList implements Parcelable, Cloneable {
 				return out;
 			}
 			JSONObject stopOrder = stopData.getJSONObject("StopOrder");
-			Iterator iterator = stopOrder.keys();
+			Iterator<String> iterator = stopOrder.keys();
 			while (iterator.hasNext()) {
-				String lineId = (String) iterator.next();
+				String lineId = iterator.next();
 				JSONArray stopList = stopOrder.getJSONArray(lineId);
 				int length = stopList.length();
 				int hasStop = 0;

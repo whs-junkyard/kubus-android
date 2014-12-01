@@ -2,14 +2,12 @@ package th.in.whs.ku.bus;
 
 import java.io.IOException;
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.AsyncTask;
-import android.os.Handler;
+
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 public class GCMController {
 	private static GCMController instance;

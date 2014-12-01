@@ -13,6 +13,7 @@ import th.in.whs.ku.bus.api.API;
 import th.in.whs.ku.bus.api.BusStatus;
 import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.api.JSONCallback;
+import th.in.whs.ku.bus.util.BusColor;
 import th.in.whs.ku.bus.util.RoutePassingFormatter;
 import th.in.whs.ku.bus.util.TimeAgo;
 import android.annotation.TargetApi;
@@ -462,7 +463,7 @@ public class BusStopInfoFragment extends Fragment {
 			busName.setText(data.name);
 			lineNo.setText(data.linename);
 			NinePatchDrawable background = (NinePatchDrawable) getActivity().getResources().getDrawable(R.drawable.cards);
-			int color = getResources().getColor(BusMapController.getColor(data.lineid));
+			int color = getResources().getColor(BusColor.getColor(data.lineid));
 			background.setColorFilter(color, android.graphics.PorterDuff.Mode.MULTIPLY);
 			View bgView = vi.findViewById(R.id.busLineRowBg);
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){

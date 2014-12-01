@@ -4,8 +4,6 @@ import java.io.IOException;
 
 import th.in.whs.ku.bus.api.API;
 import th.in.whs.ku.bus.util.ExitMessageFragment;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;

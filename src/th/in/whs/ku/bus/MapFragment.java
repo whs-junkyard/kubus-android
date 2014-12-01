@@ -4,17 +4,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import th.in.whs.ku.bus.BusStopListFragment.Sort;
 import th.in.whs.ku.bus.api.BusPosition;
 import th.in.whs.ku.bus.api.BusStopList;
-import th.in.whs.ku.bus.util.ExitMessageFragment;
+import th.in.whs.ku.bus.map.BusMapFragment;
+import th.in.whs.ku.bus.map.Filter;
+import th.in.whs.ku.bus.util.BusColor;
 import th.in.whs.ku.bus.util.ListenerList;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,21 +31,38 @@ import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
 
-public class BusMapFragment extends Fragment implements OnItemSelectedListener {
+public class MapFragment extends Fragment implements OnItemSelectedListener {
 	
-	private MapView mapView;
-	private GoogleMap map;
-	private BusMapController mapController;
 	private BusPositionUpdatedListener listener = new BusPositionUpdatedListener();
 	private int listenerId = -1;
 	private BusStopAdapter adapter;
+	private BusMapFragment map;
 	
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
+		FragmentManager manager = getChildFragmentManager();
+		if(manager.findFragmentById(R.id.map) == null){
+			FragmentTransaction tx = manager.beginTransaction();
+			
+			GoogleMapOptions options = new GoogleMapOptions()
+				.camera(new CameraPosition(new LatLng(13.847f, 100.572238f), 14.5f, 0, 0));
+			
+			Bundle bundle = new Bundle();
+			bundle.putParcelable("option", options);
+			
+			map = new BusMapFragment();
+			map.setArguments(bundle);
+			tx.replace(R.id.map, map);
+			tx.commitAllowingStateLoss();
+		}else{
+			map = (BusMapFragment) manager.findFragmentById(R.id.map);
+		}
+		
 		return inflater.inflate(R.layout.map_fragment, container, false);
     }
 	
@@ -58,22 +76,6 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 		adapter = new BusStopAdapter(getActivity());
 		linePicker.setOnItemSelectedListener(this);
 		linePicker.setAdapter(adapter);
-		
-		mapView = (MapView) getView().findViewById(R.id.map);
-		mapView.onCreate(savedInstanceState);
-		map = mapView.getMap();
-		if(map == null){
-			DialogFragment exit = new ExitMessageFragment();
-			Bundle args = new Bundle();
-			args.putString("message", getString(R.string.map_api_error));
-			exit.setArguments(args);
-			exit.show(getFragmentManager(), "dialog");
-			return;
-		}
-		map.setMyLocationEnabled(true);
-		mapController = new BusMapController(getActivity(), map);
-		
-		mapController.registerListener();
 		
 		((KuBusApplication) getActivity().getApplication()).report("BusMapFragment");
 	}
@@ -96,47 +98,19 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
-		if(mapView != null){
-			mapView.onDestroy();
-		}
 		unloadEvents();
-	}
-	
-	@Override
-	public void onLowMemory(){
-		super.onLowMemory();
-		if(mapView != null){
-			mapView.onLowMemory();
-		}
-		mapController.onLowMemory();
 	}
 	
 	@Override
 	public void onPause(){
 		super.onPause();
-		if(mapView != null){
-			mapView.onPause();
-			mapController.onPause();
-		}
 		BusPosition.removeUpdateListener(listenerId);
 	}
 	
 	@Override
 	public void onResume(){
 		super.onResume();
-		if(mapView != null){
-			mapView.onResume();
-			mapController.onResume();
-		}
 		listenerId = BusPosition.registerUpdateListener(listener, true);
-	}
-
-	@Override
-	public void onSaveInstanceState(Bundle outState){
-		super.onSaveInstanceState(outState);
-		if(mapView != null){
-			mapView.onSaveInstanceState(outState);
-		}
 	}
 	
 	public void refresh() {
@@ -147,9 +121,6 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 	private void unloadEvents(){
 		if(listenerId != -1){
 			BusPosition.removeUpdateListener(listenerId);
-		}
-		if(mapController != null){
-			mapController.unregisterListener();
 		}
 	}
 	
@@ -209,7 +180,7 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 			Line line = this.getItem(position);
 			int colorRes = Color.TRANSPARENT;
 			if(position != 0){
-				colorRes = getResources().getColor(BusMapController.getColor(line.index));
+				colorRes = getResources().getColor(BusColor.getColor(line.index));
 			}
 			if(colorBg){
 				int bgColor = colorRes, txtColor = Color.BLACK;
@@ -267,20 +238,20 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
             .build());
 		
 		if(line.isAll()){
-			mapController.clearFilter();
-			mapController.clearPolyline();
-			mapController.setFilterActive(false);
+			map.clearFilter();
+			map.clearPolyline();
+			map.setFilterActive(false);
 			return;
 		}
-		mapController.drawPolyline(line.index);
-		mapController.clearFilter();
-		mapController.addFilter(new BusMapController.Filter(BusMapController.Filter.FilterType.LINE, line.index));
-		mapController.setFilterActive(true);
+		map.drawPolyline(line.index);
+		map.clearFilter();
+		map.addFilter(new Filter(Filter.FilterType.LINE, line.index));
+		map.setFilterActive(true);
 	}
 
 	@Override
 	public void onNothingSelected(AdapterView<?> parent) {
-		mapController.clearFilter();
-		mapController.clearPolyline();
+		map.clearFilter();
+		map.clearPolyline();
 	}
 }

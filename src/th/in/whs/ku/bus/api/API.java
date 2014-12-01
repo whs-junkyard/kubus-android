@@ -1,6 +1,5 @@
 package th.in.whs.ku.bus.api;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;

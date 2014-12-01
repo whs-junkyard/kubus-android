@@ -3,9 +3,6 @@ package th.in.whs.ku.bus.util;
 import java.util.Collections;
 import java.util.List;
 
-import org.json.JSONException;
-
-import th.in.whs.ku.bus.BusMapController;
 import th.in.whs.ku.bus.R;
 import th.in.whs.ku.bus.api.BusStopList;
 import android.content.Context;
@@ -34,7 +31,7 @@ public class RoutePassingFormatter {
 			int lengthStart = out.length()+1;
 			out.append("  " + line + "  ");
 			int lengthStop = out.length()-1;
-			out.setSpan(new BackgroundColorSpan(context.getResources().getColor(BusMapController.getColor(Integer.valueOf(line)))), lengthStart, lengthStop, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+			out.setSpan(new BackgroundColorSpan(context.getResources().getColor(BusColor.getColor(Integer.valueOf(line)))), lengthStart, lengthStop, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
 			out.setSpan(new ForegroundColorSpan(Color.WHITE), lengthStart, lengthStop, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
 		}
 		

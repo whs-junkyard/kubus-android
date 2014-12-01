@@ -12,8 +12,8 @@ import org.json.JSONObject;
 
 import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.util.FullTextSearchListAdapter;
-import th.in.whs.ku.bus.util.ListenerList;
 import th.in.whs.ku.bus.util.FullTextSearchListAdapter.SearchableItem;
+import th.in.whs.ku.bus.util.ListenerList;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.location.Location;
@@ -40,8 +40,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
@@ -311,7 +309,6 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 		
 		list.clear();
     	
-    	@SuppressWarnings("unchecked")
 		Iterator<String> keys = stopData.keys();
     	Location location = locClient.getLastLocation();
     	while(keys.hasNext()){

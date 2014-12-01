@@ -6,16 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.koushikdutta.async.http.socketio.Acknowledge;
-import com.squareup.okhttp.Call;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
 import th.in.whs.ku.bus.api.API;
 import th.in.whs.ku.bus.api.Bus;
@@ -48,6 +41,10 @@ import android.widget.HeaderViewListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
 public class ThereFragment extends Fragment implements OnItemClickListener, StopSelectedInterface {
 
@@ -331,10 +328,6 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 			}
 			return;
 		}
-	}
-
-	private Object crashy() {
-		return "lei";
 	}
 
 	/**
