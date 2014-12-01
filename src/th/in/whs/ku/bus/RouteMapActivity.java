@@ -33,6 +33,8 @@ public class RouteMapActivity extends ActionBarActivity {
 		FragmentTransaction ft = this.getSupportFragmentManager().beginTransaction();
 		ft.add(android.R.id.content, fragment);
 		ft.commit();
+		
+		((KuBusApplication) getApplication()).report("RouteMapActivity");
 	}
 	
 }

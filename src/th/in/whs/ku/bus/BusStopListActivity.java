@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
+import android.view.View;
 
 public class BusStopListActivity extends ActionBarActivity implements StopSelectedInterface {
 	
@@ -63,7 +64,7 @@ public class BusStopListActivity extends ActionBarActivity implements StopSelect
 	}
 
 	@Override
-	public void stopSelected(JSONObject item) {
+	public void stopSelected(JSONObject item, View v) {
 		Intent returnIntent = new Intent();
 		if(item != null){
 			try {

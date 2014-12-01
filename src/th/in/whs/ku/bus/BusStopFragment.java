@@ -46,7 +46,7 @@ public class BusStopFragment extends Fragment implements StopSelectedInterface {
 	}
 
 	@Override
-	public void stopSelected(JSONObject item) {
+	public void stopSelected(JSONObject item, View v) {
 		if(getView() == null){
 			showStop = item;
 			return;
@@ -59,7 +59,10 @@ public class BusStopFragment extends Fragment implements StopSelectedInterface {
 		
 		FragmentTransaction ft = getChildFragmentManager().beginTransaction();
 		ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-		ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+		if(v != null){
+			Log.i("BusStopFragment", "transitioning with view");
+//			ft.addSharedElement(v, "title");
+		}
 
 		if(hasRight){
 			Log.d("BusStopFragment", "Attaching BusStopInfo to right");
@@ -93,7 +96,7 @@ public class BusStopFragment extends Fragment implements StopSelectedInterface {
 	public void onResume() {
 		super.onResume();
 		if(showStop != null){
-			stopSelected(showStop);
+			stopSelected(showStop, null);
 			showStop = null;
 		}
 	}

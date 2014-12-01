@@ -69,7 +69,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 		case 6:
 			return R.color.line4;
 		default:
-			return R.color.line1;
+			return R.color.gray;
 		}
     }
 	
@@ -179,7 +179,7 @@ public class BusMapController implements OnInfoWindowClickListener, OnMarkerClic
 				lineid = 4;
 			}
 			
-			if(busMarker == null){
+			if(busMarker == null || busMarker.marker == null){
 				LatLng latlng = new LatLng(bus.latitude, bus.longitude);
 				marker = map.addMarker(new MarkerOptions().position(latlng));
 				busMarker = new BusMarker(bus, marker);

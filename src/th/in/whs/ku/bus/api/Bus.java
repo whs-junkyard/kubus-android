@@ -108,7 +108,8 @@ public class Bus{
     }
     
     public boolean equals(Bus b){
-    	return this.id == b.id &&
+    	return b != null &&
+    		this.id == b.id &&
     		this.name == b.name &&
     		this.lineid == b.lineid &&
     		this.isinline == b.isinline &&
@@ -119,12 +120,14 @@ public class Bus{
     }
     
     public boolean isLocationEqual(Bus b){
-    	return this.latitude == b.latitude &&
+    	return b != null &&
+    			this.latitude == b.latitude &&
         		this.longitude == b.longitude;
     }
     
     public boolean isLocationEqual(LatLng b){
-    	return this.latitude == b.latitude &&
+    	return b != null &&
+    			this.latitude == b.latitude &&
         		this.longitude == b.longitude;
     }
 }

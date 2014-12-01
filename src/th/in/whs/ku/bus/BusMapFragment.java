@@ -28,6 +28,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 
@@ -36,6 +38,7 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 	private MapView mapView;
 	private GoogleMap map;
 	private BusMapController mapController;
+	private BusPositionUpdatedListener listener = new BusPositionUpdatedListener();
 	private int listenerId = -1;
 	private BusStopAdapter adapter;
 	
@@ -71,6 +74,8 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 		mapController = new BusMapController(getActivity(), map);
 		
 		mapController.registerListener();
+		
+		((KuBusApplication) getActivity().getApplication()).report("BusMapFragment");
 	}
 	
 	@Override
@@ -123,7 +128,7 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 			mapView.onResume();
 			mapController.onResume();
 		}
-		listenerId = BusPosition.registerUpdateListener(new BusPositionUpdatedListener(), true);
+		listenerId = BusPosition.registerUpdateListener(listener, true);
 	}
 
 	@Override
@@ -147,7 +152,7 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 			mapController.unregisterListener();
 		}
 	}
-
+	
 	private final class BusPositionUpdatedListener extends ListenerList.Listener {
 		@Override
 		public void onFired() {
@@ -253,6 +258,14 @@ public class BusMapFragment extends Fragment implements OnItemSelectedListener {
 			return;
 		}
 		Line line = adapter.getItem(pos);
+		
+		Tracker t = ((KuBusApplication) getActivity().getApplication()).getTracker();
+        t.send(new HitBuilders.EventBuilder()
+            .setCategory("Map")
+            .setAction("Filter line")
+            .setLabel(line.name)
+            .build());
+		
 		if(line.isAll()){
 			mapController.clearFilter();
 			mapController.clearPolyline();

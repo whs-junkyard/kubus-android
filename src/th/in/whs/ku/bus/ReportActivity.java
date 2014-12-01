@@ -83,6 +83,8 @@ public class ReportActivity extends ActionBarActivity {
 				supportInvalidateOptionsMenu();
 			}
 		});
+		
+		((KuBusApplication) getApplication()).report("ReportActivity");
 	}
 
 	@Override

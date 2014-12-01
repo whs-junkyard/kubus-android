@@ -18,6 +18,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -26,6 +27,8 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.SearchView.OnCloseListener;
 import android.support.v7.widget.SearchView.OnQueryTextListener;
+import android.transition.Transition;
+import android.transition.TransitionInflater;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -37,6 +40,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
@@ -61,6 +66,7 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 	private Sort sort = Sort.DISTANCE;
 	
 
+	@TargetApi(Build.VERSION_CODES.L)
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -68,6 +74,14 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 			this.sort = Sort.valueOf(savedInstanceState.getString("sort"));
 		}
 		locClient = new LocationClient(getActivity(), this, null);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.L){
+			TransitionInflater inflater = TransitionInflater.from(getActivity());
+			Transition move = inflater.inflateTransition(android.R.transition.move);
+			setSharedElementEnterTransition(move);
+			setSharedElementReturnTransition(move);
+		}
+		
+		((KuBusApplication) getActivity().getApplication()).report("BusStopList");
 	}
 
 	@Override
@@ -172,24 +186,24 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 
 	public void onListItemClick(ListView l, View v, int position, long id){
 		synchronized (list) {
-			stopSelected(position);
+			stopSelected(position, v.findViewById(R.id.title));
 		}
 	}
 	
-	private void stopSelected(int index){
+	private void stopSelected(int index, View v){
 		if(list.size() <= index){
-			stopSelected(null);
+			stopSelected(null, v);
 		}else{
-			stopSelected(adapter.getItem(index));
+			stopSelected(adapter.getItem(index), v);
 		}
 	}
 	
-	private void stopSelected(BusStopJSONObject item){
+	private void stopSelected(BusStopJSONObject item, View v){
 		StopSelectedInterface parent = (StopSelectedInterface) getParentFragment();
 		if(parent == null){
 			parent = (StopSelectedInterface) getActivity();
 		}
-		parent.stopSelected(item);
+		parent.stopSelected(item, v);
 	}
 	
 	public Sort getSort() {
@@ -320,7 +334,7 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 			// if we don't do this synchronously
 			// it will make the activity flash into view
 			sortSync();
-			stopSelected(list.get(0));
+			stopSelected(list.get(0), null);
 		}
 	}
 

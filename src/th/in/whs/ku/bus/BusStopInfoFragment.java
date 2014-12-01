@@ -23,6 +23,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.transition.Transition;
+import android.transition.TransitionInflater;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,6 +38,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
@@ -63,6 +67,7 @@ public class BusStopInfoFragment extends Fragment {
 	private View headerView;
 	private Call lastRequest;
 
+	@TargetApi(Build.VERSION_CODES.L)
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -71,7 +76,22 @@ public class BusStopInfoFragment extends Fragment {
 		Bundle args = this.getArguments();
 		try {
 			stopData = new JSONObject(args.getString("data"));
+			Tracker t = ((KuBusApplication) getActivity().getApplication()).getTracker();
+			t.setScreenName("BusStopInfo");
+	        t.send(new HitBuilders.EventBuilder()
+	            .setCategory("BusStopInfo")
+	            .setAction("View stop")
+	            .setLabel(stopData.getString("ID"))
+	            .build());
 		} catch (JSONException e) {
+			((KuBusApplication) getActivity().getApplication()).report("BusStopInfo");
+		}
+		
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.L){
+			TransitionInflater inflater = TransitionInflater.from(getActivity());
+			Transition move = inflater.inflateTransition(android.R.transition.move);
+			setSharedElementEnterTransition(move);
+			setSharedElementReturnTransition(move);
 		}
 	}
 

@@ -15,7 +15,6 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 
 public class API {
-	protected static final String APP_URL="http://kubus.netburzt.com/";
 	protected static final String BASE_URL="http://kusmartbus.netburzt.com/";
 	protected static final String STREAM_URL="http://madoka.whs.in.th:58439/";
 
@@ -88,9 +87,6 @@ public class API {
 	private static String getAbsoluteUrl(String relativeUrl) {
 		if(relativeUrl.startsWith("http://")){
 			return relativeUrl;
-		}
-		if(relativeUrl.startsWith("appapi/")){
-			return APP_URL + relativeUrl;
 		}
 		return BASE_URL + relativeUrl;
 	}

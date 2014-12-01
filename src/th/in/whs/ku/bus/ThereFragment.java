@@ -159,6 +159,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 		}
 
 		handler = new Handler();
+		((KuBusApplication) getActivity().getApplication()).report("ThereFragment");
 	}
 
 	@Override
@@ -634,7 +635,7 @@ public class ThereFragment extends Fragment implements OnItemClickListener, Stop
 	 * Sent from BusStopListFragment when from stop has been selected automatically
 	 */
 	@Override
-	public void stopSelected(JSONObject item) {
+	public void stopSelected(JSONObject item, View v) {
 		if(noAutoFromStop){
 			return;
 		}

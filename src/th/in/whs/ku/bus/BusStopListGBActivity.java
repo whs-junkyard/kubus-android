@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.view.View;
 
 /**
  * Clone of BusStopListActivity with ActionBar disabled
@@ -55,7 +56,7 @@ public class BusStopListGBActivity extends FragmentActivity implements StopSelec
 	}
 
 	@Override
-	public void stopSelected(JSONObject item) {
+	public void stopSelected(JSONObject item, View v) {
 		Intent returnIntent = new Intent();
 		if(item != null){
 			try {

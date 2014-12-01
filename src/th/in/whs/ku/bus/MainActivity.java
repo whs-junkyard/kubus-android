@@ -8,8 +8,8 @@ import org.json.JSONObject;
 import th.in.whs.ku.bus.api.API;
 import th.in.whs.ku.bus.api.BusPosition;
 import th.in.whs.ku.bus.api.BusStopList;
-import th.in.whs.ku.bus.util.ListenerList.Listener;
 import th.in.whs.ku.bus.util.ExitMessageFragment;
+import th.in.whs.ku.bus.util.ListenerList.Listener;
 import th.in.whs.ku.bus.util.NFCBuilder;
 import android.annotation.TargetApi;
 import android.app.Dialog;
@@ -356,7 +356,7 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
 		showBusStopOnTab = null;
 		if(currentFragment instanceof BusStopFragment){
 			BusStopFragment busStop = (BusStopFragment) currentFragment;
-			busStop.stopSelected(item);
+			busStop.stopSelected(item, null);
 		}else{
 			showBusStopOnTab = item;
 			showBusStopList();

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="primary">#429024</color>
+    <color name="primaryDark">#34701d</color>
+    <color name="accent">#ffd700</color>
+    
     <color name="gray">#888888</color>
     
     <color name="line1">#800000</color>
