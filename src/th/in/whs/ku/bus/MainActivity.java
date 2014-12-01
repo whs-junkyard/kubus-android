@@ -41,6 +41,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.MapsInitializer;
+import com.splunk.mint.Mint;
 
 public class MainActivity extends ActionBarActivity implements Handler.Callback, NFCSettableActivity {
 	
@@ -147,6 +148,8 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
     	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH){
     		nfc = NfcAdapter.getDefaultAdapter(this);
     	}
+    	
+    	Mint.initAndStartSession(this, "bfb17d18");
     }
 
     @Override
