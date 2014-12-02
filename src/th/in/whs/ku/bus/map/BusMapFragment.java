@@ -55,8 +55,12 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	private SupportMapFragment fragment;
 	
 	private GoogleMap map;
-
-	public BusMapFragment(){
+	
+	public GoogleMap getMap(){
+		if(map == null){
+			map = fragment.getMap();
+		}
+		return map;
 	}
 
 	@Override
@@ -82,7 +86,12 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 		if(map == null){
 			throw new IllegalStateException("Map is not defined");
 		}
-		map.setMyLocationEnabled(true);
+		
+		Bundle args = getArguments();
+		if(!args.getBoolean("noMyLocation")){
+			map.setMyLocationEnabled(true);
+		}
+		
 		map.setOnInfoWindowClickListener(this);
 		map.setOnMarkerClickListener(this);
 		map.setOnMapClickListener(this);

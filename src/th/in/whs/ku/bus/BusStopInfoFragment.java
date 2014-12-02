@@ -13,6 +13,8 @@ import th.in.whs.ku.bus.api.API;
 import th.in.whs.ku.bus.api.BusStatus;
 import th.in.whs.ku.bus.api.BusStopList;
 import th.in.whs.ku.bus.api.JSONCallback;
+import th.in.whs.ku.bus.map.BusMapFragment;
+import th.in.whs.ku.bus.map.Filter;
 import th.in.whs.ku.bus.util.BusColor;
 import th.in.whs.ku.bus.util.RoutePassingFormatter;
 import th.in.whs.ku.bus.util.TimeAgo;
@@ -24,6 +26,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
 import android.util.Log;
@@ -42,7 +45,8 @@ import android.widget.Toast;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -58,8 +62,7 @@ public class BusStopInfoFragment extends Fragment {
 	
 	private JSONObject stopData;
 	private JSONArray stopBus;
-	private MapView mapView;
-	private BusMapController mapController;
+	private BusMapFragment map;
 	private ListView list;
 	private BusStopAdapter adapter;
 	private LayoutInflater inflater=null;
@@ -85,8 +88,11 @@ public class BusStopInfoFragment extends Fragment {
 	            .setLabel(stopData.getString("ID"))
 	            .build());
 		} catch (JSONException e) {
-			((KuBusApplication) getActivity().getApplication()).report("BusStopInfo");
+			getFragmentManager().popBackStackImmediate();
+			return;
 		}
+		
+		((KuBusApplication) getActivity().getApplication()).report("BusStopInfo");
 		
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.L){
 			TransitionInflater inflater = TransitionInflater.from(getActivity());
@@ -103,8 +109,42 @@ public class BusStopInfoFragment extends Fragment {
 		View view = inflater.inflate(R.layout.stopinfo_fragment, container, false);
 		
 		list = (ListView) view.findViewById(R.id.busList);
-		headerView = inflater.inflate(R.layout.busstop_head_row, null, false);
+		headerView = inflater.inflate(R.layout.busstop_head_row, list, false);
 		list.addHeaderView(headerView);
+		
+		FragmentManager manager = getChildFragmentManager();
+		if(manager.findFragmentById(R.id.map) != null){
+			map = (BusMapFragment) manager.findFragmentById(R.id.map);
+		}else{
+			try {
+				Bundle bundle = new Bundle();
+				bundle.putParcelable("option",
+						new GoogleMapOptions()
+							.camera(new CameraPosition(new LatLng(
+									stopData.getDouble("Latitude") + 0.001,
+									stopData.getDouble("Longitude")
+							), 16, 45, 0))
+							.compassEnabled(false)
+							.rotateGesturesEnabled(false)
+							.scrollGesturesEnabled(false)
+							.tiltGesturesEnabled(false)
+							.zoomControlsEnabled(false)
+							.zoomGesturesEnabled(false)
+				);
+				bundle.putBoolean("filterActive", true);
+				bundle.putBoolean("allowBusStopClick", false);
+				bundle.putBoolean("noMyLocation", true);
+				bundle.putIntArray("padding", new int[]{0, 0, 0, 90});
+				
+				map = new BusMapFragment();
+				map.setArguments(bundle);
+				FragmentTransaction tx = manager.beginTransaction();
+				tx.replace(R.id.map, map);
+				tx.commitAllowingStateLoss();
+			} catch (JSONException e) {
+				Log.e("BusStopInfo", "error while creating view", e);
+			}
+		}
 		
 		return view;
 	}
@@ -112,7 +152,6 @@ public class BusStopInfoFragment extends Fragment {
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		
 		setHasOptionsMenu(true);
 		
 		try {
@@ -128,16 +167,16 @@ public class BusStopInfoFragment extends Fragment {
 					if(item == null){
 						return;
 					}
-					Marker mark = mapController.get(item.id);
+					Marker mark = map.get(item.id);
 					if(mark != null){
 						// show marker's bubble window and move camera to marker position
 						mark.showInfoWindow();
 						LatLng latlng = mark.getPosition();
-						mapView.getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(
+						map.getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(
 								new LatLng(latlng.latitude + 0.0006, latlng.longitude)
 						, 17));
-						mapController.clearPolyline();
-						mapController.drawPolyline(item.lineid);
+						map.clearPolyline();
+						map.drawPolyline(item.lineid);
 					}
 				}
 				
@@ -160,16 +199,6 @@ public class BusStopInfoFragment extends Fragment {
 				routePassing.setText(getString(R.string.line_passing) + getString(R.string.json_error));
 			}
 			
-			mapView = (MapView) headerView.findViewById(R.id.map);
-			mapView.onCreate(savedInstanceState);
-			
-			mapController = new BusMapController(getActivity(), mapView.getMap());
-			mapController.setFilterActive(true);
-			mapController.setAllowBusStopClick(false);
-			mapController.registerListener();
-			
-			onMapCreated();
-			
 			boolean downloadBus = true;
 			if(savedInstanceState != null){
 				String data = savedInstanceState.getString("data");
@@ -184,39 +213,33 @@ public class BusStopInfoFragment extends Fragment {
 			if(downloadBus){
 				// download bus list
 				setShowProgress(true);
-				loadInfo();
+	//			loadInfo();
 			}
 		} catch (JSONException e) {
-			Log.e("BusStopInfoFragment", "JSON Error", e);
-			Toast.makeText(getActivity(), R.string.json_error, Toast.LENGTH_LONG).show();
-			FragmentManager fragmentManager = getFragmentManager();
-			fragmentManager.popBackStack();
-			return;
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
-	
-	private void onMapCreated(){
+
+	@Override
+	public void onStart() {
+		super.onStart();
 		try {
 			LatLng latlng = new LatLng(
 					stopData.getDouble("Latitude"),
 					stopData.getDouble("Longitude")
 			);
-		
-			LatLng latlngView = new LatLng(
-					latlng.latitude + 0.001,
-					latlng.longitude
-			);
 			
-			// move camera to bus stop
-			mapView.getMap().moveCamera(CameraUpdateFactory.newLatLng(latlngView));
-			mapView.getMap().setPadding(0, 0, 0, 90);
-			// draw the bus stop marker
-			MarkerOptions marker = new MarkerOptions();
-			marker.position(latlng);
-			marker.title(stopData.getString("Name"));
-			Marker mark = mapView.getMap().addMarker(marker);
-			mark.showInfoWindow();
+//			MarkerOptions marker = new MarkerOptions();
+//			marker.position(latlng);
+//			marker.title(stopData.getString("Name"));
+//			Marker mark = map.getMap().addMarker(marker);
+//			mark.showInfoWindow();
 		} catch (JSONException e) {
+			Log.e("BusStopInfoFragment", "JSON Error", e);
+			Toast.makeText(getActivity(), R.string.json_error, Toast.LENGTH_LONG).show();
+			FragmentManager fragmentManager = getFragmentManager();
+			fragmentManager.popBackStack();
 			return;
 		}
 	}
@@ -293,7 +316,7 @@ public class BusStopInfoFragment extends Fragment {
 			if(item.getBus() != null && item.getBus().isinpark){
 				continue;
 			}
-			mapController.addFilter(new BusMapController.Filter(BusMapController.Filter.FilterType.BUS, item.id));
+			map.addFilter(new Filter(Filter.FilterType.BUS, item.id));
     		adapter.add(item);
     	}
     	adapter.notifyDataSetChanged();
@@ -302,37 +325,14 @@ public class BusStopInfoFragment extends Fragment {
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
-		if(mapView != null){
-			mapView.onDestroy();
-		}
-		if(mapController != null){
-			mapController.unregisterListener();
-		}
 		if(lastRequest != null){
 			lastRequest.cancel();
 		}
 	}
 	
 	@Override
-	public void onLowMemory(){
-		super.onLowMemory();
-		if(mapView != null){
-			mapView.onLowMemory();
-		}
-		if(mapController != null){
-			mapController.onLowMemory();
-		}
-	}
-	
-	@Override
 	public void onPause(){
 		super.onPause();
-		if(mapView != null){
-			mapView.onPause();
-		}
-		if(mapController != null){
-			mapController.onPause();
-		}
 		if(autorefresh != null){
 			handler.removeCallbacks(autorefresh);
 		}
@@ -341,12 +341,6 @@ public class BusStopInfoFragment extends Fragment {
 	@Override
 	public void onResume(){
 		super.onResume();
-		if(mapView != null){
-			mapView.onResume();
-		}
-		if(mapController != null){
-			mapController.onResume();
-		}
 		if(this.stopBus != null){
 			autorefresh();
 		}
@@ -355,9 +349,6 @@ public class BusStopInfoFragment extends Fragment {
 	@Override
 	public void onSaveInstanceState(Bundle outState){
 		super.onSaveInstanceState(outState);
-		if(mapView != null){
-			mapView.onSaveInstanceState(outState);
-		}
 		if(stopBus != null){
 			outState.putString("data", stopBus.toString());
 		}

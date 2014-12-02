@@ -6,24 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="180dp" >
 
-    <com.google.android.gms.maps.MapView
+    <FrameLayout
         android:id="@+id/map"
         android:layout_width="match_parent"
         android:layout_height="180dp"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        map:cameraTargetLat="13.848914"
-        map:cameraTargetLng="100.572238"
-        map:cameraTilt="45"
-        map:cameraZoom="16"
-        map:uiCompass="false"
-        map:uiRotateGestures="false"
-        map:uiScrollGestures="false"
-        map:uiTiltGestures="false"
-        map:uiZoomControls="false"
-        map:uiZoomGestures="false" >
-
-    </com.google.android.gms.maps.MapView>
+        android:layout_alignParentTop="true" />
 
     <View
         android:id="@+id/View1"
