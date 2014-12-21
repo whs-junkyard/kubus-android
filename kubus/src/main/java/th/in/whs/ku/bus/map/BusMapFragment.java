@@ -40,7 +40,9 @@ import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -53,14 +55,11 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	private static final float OUT_OF_SERVICE_ALPHA = 0.6f;
 	private static final int VIEW_ID = 165189189;
 	private SupportMapFragment fragment;
-	
+
 	private GoogleMap map;
-	
-	public GoogleMap getMap(){
-		if(map == null){
-			map = fragment.getMap();
-		}
-		return map;
+
+	public void getMapAsync(OnMapReadyCallback callback){
+		fragment.getMapAsync(callback);
 	}
 
 	@Override
@@ -82,27 +81,32 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	@Override
 	public void onStart() {
 		super.onStart();
-		this.map = fragment.getMap();
-		if(map == null){
-			throw new IllegalStateException("Map is not defined");
-		}
-		
-		Bundle args = getArguments();
-		if(!args.getBoolean("noMyLocation")){
-			map.setMyLocationEnabled(true);
-		}
-		
-		map.setOnInfoWindowClickListener(this);
-		map.setOnMarkerClickListener(this);
-		map.setOnMapClickListener(this);
-		registerListener();
+        fragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                map = googleMap;
+                Bundle args = getArguments();
+                if(!args.getBoolean("noMyLocation")){
+                    map.setMyLocationEnabled(true);
+                }
+
+                map.getUiSettings().setMapToolbarEnabled(false);
+                map.setOnInfoWindowClickListener(BusMapFragment.this);
+                map.setOnMarkerClickListener(BusMapFragment.this);
+                map.setOnMapClickListener(BusMapFragment.this);
+                registerListener();
+            }
+        });
 	}
 
-	/**
-	 * Reconnect to busposition service
-	 */
 	public void onResume(){
 		super.onResume();
+        fragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                map = googleMap;
+            }
+        });
 		if(listenerId != -1){
 			BusPosition.wsConnect();
 		}
@@ -120,6 +124,8 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	 */
 	public void onPause(){
 		super.onPause();
+        map = null;
+        markers.clear();
 		BusPosition.wsDisconnect();
 	}
 
@@ -162,6 +168,9 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	 * Connect to the bus position service and show bus in map
 	 */
 	private void registerListener(){
+        if(listenerId != -1){
+            return;
+        }
 		BusPosition.wsConnect();
 		listenerId = BusPosition.registerUpdateListener(new ListenerList.Listener(){
 	

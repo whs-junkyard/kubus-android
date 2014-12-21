@@ -64,27 +64,27 @@ public class MainActivity extends ActionBarActivity implements Handler.Callback,
 			Debug.startMethodTracing("kusmartbus");
 		}
 		
-    	if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= 9) {
-    		if(Build.VERSION.SDK_INT >= 11){
-    			StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-		            .detectAll()
-		            .penaltyLog()
-		            .build());
-	    		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-	    			.detectAll()
-	    			.setClassInstanceLimit(BusStopFragment.class, 1)
-	    			.setClassInstanceLimit(BusStopInfoFragment.class, 1)
-	    			.setClassInstanceLimit(BusStopListFragment.class, 1)
-	    			.setClassInstanceLimit(MapFragment.class, 1)
-	    			.setClassInstanceLimit(ThereFragment.class, 1)
-	    			.setClassInstanceLimit(API.class, 1)
-	    			.setClassInstanceLimit(BusStopList.class, 1)
-	    			.setClassInstanceLimit(BusPosition.class, 1)
-	    			.build());
-    		}else{
-    			StrictMode.enableDefaults();
-    		}
-        }
+//    	if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= 9) {
+//    		if(Build.VERSION.SDK_INT >= 11){
+//    			StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+//		            .detectAll()
+//		            .penaltyLog()
+//		            .build());
+//	    		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+//	    			.detectAll()
+//	    			.setClassInstanceLimit(BusStopFragment.class, 1)
+//	    			.setClassInstanceLimit(BusStopInfoFragment.class, 1)
+//	    			.setClassInstanceLimit(BusStopListFragment.class, 1)
+//	    			.setClassInstanceLimit(MapFragment.class, 1)
+//	    			.setClassInstanceLimit(ThereFragment.class, 1)
+//	    			.setClassInstanceLimit(API.class, 1)
+//	    			.setClassInstanceLimit(BusStopList.class, 1)
+//	    			.setClassInstanceLimit(BusPosition.class, 1)
+//	    			.build());
+//    		}else{
+//    			StrictMode.enableDefaults();
+//    		}
+//        }
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_PROGRESS);
         

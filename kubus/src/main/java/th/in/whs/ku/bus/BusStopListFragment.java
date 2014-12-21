@@ -65,7 +65,6 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
 	private Sort sort = Sort.DISTANCE;
 	
 
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -76,12 +75,6 @@ public class BusStopListFragment extends ListFragment implements OnQueryTextList
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
                 .build();
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-			TransitionInflater inflater = TransitionInflater.from(getActivity());
-			Transition move = inflater.inflateTransition(android.R.transition.move);
-			setSharedElementEnterTransition(move);
-			setSharedElementReturnTransition(move);
-		}
 		
 		((KuBusApplication) getActivity().getApplication()).report("BusStopList");
 	}

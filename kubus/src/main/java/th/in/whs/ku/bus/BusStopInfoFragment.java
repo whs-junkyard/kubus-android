@@ -45,7 +45,9 @@ import android.widget.Toast;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -71,7 +73,6 @@ public class BusStopInfoFragment extends Fragment {
 	private View headerView;
 	private Call lastRequest;
 
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -93,13 +94,6 @@ public class BusStopInfoFragment extends Fragment {
 		}
 		
 		((KuBusApplication) getActivity().getApplication()).report("BusStopInfo");
-		
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-			TransitionInflater inflater = TransitionInflater.from(getActivity());
-			Transition move = inflater.inflateTransition(android.R.transition.move);
-			setSharedElementEnterTransition(move);
-			setSharedElementReturnTransition(move);
-		}
 	}
 
 	@Override
@@ -163,7 +157,7 @@ public class BusStopInfoFragment extends Fragment {
 
 				@Override
 				public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
-					BusStatus item = (BusStatus) list.getItemAtPosition(position);
+					final BusStatus item = (BusStatus) list.getItemAtPosition(position);
 					if(item == null){
 						return;
 					}
@@ -171,12 +165,17 @@ public class BusStopInfoFragment extends Fragment {
 					if(mark != null){
 						// show marker's bubble window and move camera to marker position
 						mark.showInfoWindow();
-						LatLng latlng = mark.getPosition();
-						map.getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(
-								new LatLng(latlng.latitude + 0.0006, latlng.longitude)
-						, 17));
-						map.clearPolyline();
-						map.drawPolyline(item.lineid);
+						final LatLng latlng = mark.getPosition();
+                        map.getMapAsync(new OnMapReadyCallback() {
+                            @Override
+                            public void onMapReady(GoogleMap googleMap) {
+                                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(latlng.latitude + 0.0006, latlng.longitude)
+                                        , 17));
+                                map.clearPolyline();
+                                map.drawPolyline(item.lineid);
+                            }
+                        });
 					}
 				}
 				
@@ -224,24 +223,29 @@ public class BusStopInfoFragment extends Fragment {
 	@Override
 	public void onStart() {
 		super.onStart();
-		try {
-			LatLng latlng = new LatLng(
-					stopData.getDouble("Latitude"),
-					stopData.getDouble("Longitude")
-			);
-			
-//			MarkerOptions marker = new MarkerOptions();
-//			marker.position(latlng);
-//			marker.title(stopData.getString("Name"));
-//			Marker mark = map.getMap().addMarker(marker);
-//			mark.showInfoWindow();
-		} catch (JSONException e) {
-			Log.e("BusStopInfoFragment", "JSON Error", e);
-			Toast.makeText(getActivity(), R.string.json_error, Toast.LENGTH_LONG).show();
-			FragmentManager fragmentManager = getFragmentManager();
-			fragmentManager.popBackStack();
-			return;
-		}
+        map.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                try {
+                    LatLng latlng = new LatLng(
+                            stopData.getDouble("Latitude"),
+                            stopData.getDouble("Longitude")
+                    );
+
+                    MarkerOptions marker = new MarkerOptions();
+                    marker.position(latlng);
+                    marker.title(stopData.getString("Name"));
+                    Marker mark = googleMap.addMarker(marker);
+                    mark.showInfoWindow();
+                } catch (JSONException e) {
+                    Log.e("BusStopInfoFragment", "JSON Error", e);
+                    Toast.makeText(getActivity(), R.string.json_error, Toast.LENGTH_LONG).show();
+                    FragmentManager fragmentManager = getFragmentManager();
+                    fragmentManager.popBackStack();
+                    return;
+                }
+            }
+        });
 	}
 
 	/**
