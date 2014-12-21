@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
 
     <string name="app_name">KUSmartBus</string>
     <string name="action_settings">Settings</string>
@@ -55,11 +55,11 @@
     <string name="internet_error">Network Error</string>
     <string name="no_stop">Invalid bus stop</string>
     <string name="nfc_min_ver">NFC tag writer requires Android 4.0</string>
-    <string name="no_nfc">NFC device not present</string>
-    <string name="nfc_lost">NFC lost</string>
-    <string name="nfc_io_error">NFC write error</string>
-    <string name="nfc_io">NFC IO Error</string>
-    <string name="nfc_message_error">NFC message error</string>
+    <string name="no_nfc" tools:ignore="MissingTranslation">NFC device not present</string>
+    <string name="nfc_lost" tools:ignore="MissingTranslation">NFC lost</string>
+    <string name="nfc_io_error" tools:ignore="MissingTranslation">NFC write error</string>
+    <string name="nfc_io" tools:ignore="MissingTranslation">NFC IO Error</string>
+    <string name="nfc_message_error" tools:ignore="MissingTranslation">NFC message error</string>
     <string name="gcm_not_avail">Google Cloud Messaging is not available</string>
     
     <!-- time -->
@@ -73,15 +73,15 @@
     <string name="unknown_time">N/A</string>
     <string name="lt_min">&lt; 1</string>
     
-    <string name="fb_page_id">1390683647835494</string>
+    <string name="fb_page_id" translatable="false">1390683647835494</string>
 
     <!-- nfc programming -->
-    <string name="uri">URI</string>
-    <string name="write_protect">Write protect</string>
-    <string name="pick_stop">Pick stop</string>
-    <string name="home">Launch app</string>
-    <string name="nfc_prog">NFC Program</string>
-    <string name="tap_to_write">Tap tag to write</string>
-    <string name="write_protect_confirm_title">Write protect tag?</string>
-    <string name="write_protect_confirm_body">This cannot be undone.</string>
+    <string name="uri" tools:ignore="MissingTranslation">URI</string>
+    <string name="write_protect" tools:ignore="MissingTranslation">Write protect</string>
+    <string name="pick_stop" tools:ignore="MissingTranslation">Pick stop</string>
+    <string name="home" tools:ignore="MissingTranslation">Launch app</string>
+    <string name="nfc_prog" tools:ignore="MissingTranslation">NFC Program</string>
+    <string name="tap_to_write" tools:ignore="MissingTranslation">Tap tag to write</string>
+    <string name="write_protect_confirm_title" tools:ignore="MissingTranslation">Write protect tag?</string>
+    <string name="write_protect_confirm_body" tools:ignore="MissingTranslation">This cannot be undone.</string>
 </resources>

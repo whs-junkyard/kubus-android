@@ -2,6 +2,8 @@
 
 <a href="https://play.google.com/store/apps/details?id=th.in.whs.ku.bus"><img src="https://developer.android.com/images/brand/en_generic_rgb_wo_60.png" alt="Get it on Google Play Store"></a>
 
+You need to disable incomplete translation build to compile a release APK in Android Studio.
+
 ## License
 
 KUSmartBus for Android is licensed under [GNU General Public License, version 2](https://www.gnu.org/licenses/gpl-2.0.html) or later.

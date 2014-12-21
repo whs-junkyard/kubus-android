@@ -66,5 +66,6 @@
     <string name="hour">ชั่วโมง</string>
     <string name="hours">ชั่วโมง</string>
     <string name="unknown_time">-</string>
+    <string name="lt_min">&lt; 1</string>
 
 </resources>
