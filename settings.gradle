@@ -1,0 +1,3 @@
+include ':appRater'
+include ':sentry'
+include ':kubus'

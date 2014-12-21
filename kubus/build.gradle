@@ -1,0 +1,46 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion '21.1.2'
+
+    defaultConfig {
+        applicationId "th.in.whs.ku.bus"
+        minSdkVersion 9
+        targetSdkVersion 21
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-project.txt'
+        }
+    }
+}
+
+configurations {
+    protobuf
+}
+
+dependencies {
+    compile 'com.koushikdutta.async:androidasync:2.+'
+    compile project(':appRater')
+    compile project(':sentry')
+    compile 'com.android.support:appcompat-v7:21.+'
+    compile 'com.google.android.gms:play-services-location:6.5.+'
+    compile 'com.google.android.gms:play-services-maps:6.5.+'
+    compile 'com.squareup.okhttp:okhttp:2.+'
+    compile 'com.squareup.wire:wire-runtime:1.+'
+    protobuf 'com.squareup.wire:wire-compiler:1.+'
+}
+
+task compileProtobuf(type: JavaExec) {
+    classpath configurations.protobuf.asPath
+    main 'com.squareup.wire.WireCompiler'
+
+    def java_args = ['--proto_path=protobuf', '--java_out=src/main/java/']
+    java_args += file('protobuf/').listFiles().findAll {it.name.endsWith('.proto')}.collect{it.name}
+    args java_args
+}
+
+tasks.preBuild.dependsOn compileProtobuf

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/appRater/appRater.iml" filepath="$PROJECT_DIR$/appRater/appRater.iml" />
+      <module fileurl="file://$PROJECT_DIR$/kubus/kubus.iml" filepath="$PROJECT_DIR$/kubus/kubus.iml" />
+      <module fileurl="file://$PROJECT_DIR$/kubus-android.iml" filepath="$PROJECT_DIR$/kubus-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sentry/sentry.iml" filepath="$PROJECT_DIR$/sentry/sentry.iml" />
+    </modules>
+  </component>
+</project>
+
