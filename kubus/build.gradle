@@ -7,6 +7,8 @@ android {
         applicationId "th.in.whs.ku.bus"
         minSdkVersion 9
         targetSdkVersion 22
+        versionCode 24
+        versionName "1.12.1"
     }
     buildTypes {
         release {
