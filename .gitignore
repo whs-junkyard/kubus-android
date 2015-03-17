@@ -6,3 +6,4 @@
 build
 kubus/manifest-merger-release-report.txt
 *.apk
+kubus/src/main/gen/th/in/whs/ku/bus/protobuf/

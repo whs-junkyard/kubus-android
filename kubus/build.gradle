@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion '21.1.2'
+    compileSdkVersion 22
+    buildToolsVersion '22.0.0'
     defaultConfig {
         applicationId "th.in.whs.ku.bus"
         minSdkVersion 9
-        targetSdkVersion 19
+        targetSdkVersion 22
     }
     buildTypes {
         release {
@@ -15,6 +15,14 @@ android {
         }
     }
     productFlavors {
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDir 'src/main/gen'
+            }
+        }
     }
 }
 
@@ -26,7 +34,7 @@ dependencies {
     compile 'com.koushikdutta.async:androidasync:2.+'
     compile project(':appRater')
     compile project(':sentry')
-    compile 'com.android.support:appcompat-v7:21.+'
+    compile 'com.android.support:appcompat-v7:22.+'
     compile 'com.google.android.gms:play-services-location:6.5.+'
     compile 'com.google.android.gms:play-services-maps:6.5.+'
     compile 'com.squareup.okhttp:okhttp:2.+'
@@ -38,7 +46,7 @@ task compileProtobuf(type: JavaExec) {
     classpath configurations.protobuf.asPath
     main 'com.squareup.wire.WireCompiler'
 
-    def java_args = ['--proto_path=protobuf', '--java_out=src/main/java/']
+    def java_args = ['--proto_path=protobuf', '--java_out=src/main/gen/']
     java_args += file('protobuf/').listFiles().findAll {it.name.endsWith('.proto')}.collect{it.name}
     args java_args
 }
