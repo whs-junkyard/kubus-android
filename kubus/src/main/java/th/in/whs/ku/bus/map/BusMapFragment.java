@@ -201,6 +201,9 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	 * @param data Bus position data from BusPosition.gets()
 	 */
 	public void update(SparseArray<Bus> data){
+        if(map == null){
+            return;
+        }
 		ArrayList<Integer> hasBus = new ArrayList<Integer>();
 		for(int i=0; i < data.size(); i++){
 			Bus bus = data.valueAt(i);

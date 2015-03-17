@@ -115,7 +115,7 @@ public class BusStopInfoFragment extends Fragment {
 				bundle.putParcelable("option",
 						new GoogleMapOptions()
 							.camera(new CameraPosition(new LatLng(
-									stopData.getDouble("Latitude") + 0.001,
+									stopData.getDouble("Latitude") + 0.0008,
 									stopData.getDouble("Longitude")
 							), 16, 45, 0))
 							.compassEnabled(false)
@@ -212,7 +212,7 @@ public class BusStopInfoFragment extends Fragment {
 			if(downloadBus){
 				// download bus list
 				setShowProgress(true);
-	//			loadInfo();
+				loadInfo();
 			}
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
