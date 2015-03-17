@@ -60,7 +60,7 @@ public class KuBusApplication extends Application {
 	
 	public void report(String view){
 		Tracker t = getTracker();
-        t.setScreenName("BusStopList");
+        t.setScreenName(view);
         t.send(new HitBuilders.AppViewBuilder().build());
 	}
 

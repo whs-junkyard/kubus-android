@@ -46,8 +46,7 @@ public class RouteMapFragment extends Fragment {
 			
 			Bundle arguments = getArguments();
 			bundle.putBoolean("filterActive", true);
-			bundle.putBoolean("drawPolylineRoute", true);
-			bundle.putStringArray("filterActive",
+			bundle.putStringArray("drawPolylineRoute",
 				new String[]{
 					String.valueOf(arguments.getInt("line")),
 					arguments.getString("from"),

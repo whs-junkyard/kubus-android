@@ -1,20 +1,5 @@
 package th.in.whs.ku.bus.map;
 
-import java.util.ArrayList;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import th.in.whs.ku.bus.MainActivity;
-import th.in.whs.ku.bus.R;
-import th.in.whs.ku.bus.ReportActivity;
-import th.in.whs.ku.bus.api.Bus;
-import th.in.whs.ku.bus.api.BusPosition;
-import th.in.whs.ku.bus.api.BusStopList;
-import th.in.whs.ku.bus.util.BusColor;
-import th.in.whs.ku.bus.util.ListenerList;
-import th.in.whs.ku.bus.util.NearestLineToPoint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -42,7 +27,6 @@ import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -50,13 +34,27 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
+import th.in.whs.ku.bus.MainActivity;
+import th.in.whs.ku.bus.R;
+import th.in.whs.ku.bus.ReportActivity;
+import th.in.whs.ku.bus.api.Bus;
+import th.in.whs.ku.bus.api.BusPosition;
+import th.in.whs.ku.bus.api.BusStopList;
+import th.in.whs.ku.bus.util.BusColor;
+import th.in.whs.ku.bus.util.ListenerList;
+import th.in.whs.ku.bus.util.NearestLineToPoint;
+
 public class BusMapFragment extends Fragment implements OnInfoWindowClickListener, OnMarkerClickListener, OnMapClickListener {
 	
 	private static final float OUT_OF_SERVICE_ALPHA = 0.6f;
 	private static final int VIEW_ID = 165189189;
 	private SupportMapFragment fragment;
-
-	private GoogleMap map;
 
 	public void getMapAsync(OnMapReadyCallback callback){
 		fragment.getMapAsync(callback);
@@ -83,8 +81,7 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 		super.onStart();
         fragment.getMapAsync(new OnMapReadyCallback() {
             @Override
-            public void onMapReady(GoogleMap googleMap) {
-                map = googleMap;
+            public void onMapReady(GoogleMap map) {
                 Bundle args = getArguments();
                 if(!args.getBoolean("noMyLocation")){
                     map.setMyLocationEnabled(true);
@@ -101,12 +98,6 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 
 	public void onResume(){
 		super.onResume();
-        fragment.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap googleMap) {
-                map = googleMap;
-            }
-        });
 		if(listenerId != -1){
 			BusPosition.wsConnect();
 		}
@@ -124,7 +115,6 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	 */
 	public void onPause(){
 		super.onPause();
-        map = null;
         markers.clear();
 		BusPosition.wsDisconnect();
 	}
@@ -200,88 +190,90 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	 * Redraw
 	 * @param data Bus position data from BusPosition.gets()
 	 */
-	public void update(SparseArray<Bus> data){
-        if(map == null){
-            return;
-        }
-		ArrayList<Integer> hasBus = new ArrayList<Integer>();
-		for(int i=0; i < data.size(); i++){
-			Bus bus = data.valueAt(i);
-			if(bus.isinpark){
-				continue;
-			}
-			if(useFilter && !isFiltered(bus)){
-				continue;
-			}
-			hasBus.add(bus.id);
-			
-			BusMarker busMarker = markers.get(bus.id);
-			Marker marker;
-			boolean newlyCreated = false;
-			
-			int lineid = bus.lineid;
-			if(lineid == 6){
-				lineid = 4;
-			}
-			
-			if(busMarker == null || busMarker.marker == null){
-				LatLng latlng = new LatLng(bus.latitude, bus.longitude);
-				marker = map.addMarker(new MarkerOptions().position(latlng));
-				busMarker = new BusMarker(bus, marker);
-				markers.put(bus.id, busMarker);
-				newlyCreated = true;
-			}else{
-				marker = busMarker.marker;
-				
-				if(!bus.isLocationEqual(marker.getPosition())){
-					LatLng latlng = new LatLng(bus.latitude, bus.longitude);
-					marker.setPosition(latlng);
-				}
-				
-				if(busMarker.bus.equals(bus)){
-					continue;
-				}
-			}
-			
-			if(lineid == 0 || bus.isinpark){
-				marker.setTitle(bus.name);
-				if(bus.isinpark){
-					marker.setSnippet(getString(R.string.bus_parking));
-				}else{
-					marker.setSnippet(getString(R.string.bus_no_line));
-				}
-			}else{
-				marker.setTitle(String.format(getString(R.string.bus_line), lineid));
-				marker.setSnippet(bus.name);
-			}
-			
-			if(newlyCreated || busMarker.bus.lineid != lineid){
-				Log.d("BusMapController", "Requesting icon "+bus.lineid+" id "+bus.id);
-				BitmapDescriptor icon = BusIconCache.instance.getCache(bus.lineid);
-				marker.setIcon(icon);
-			}
-			
-			if(!bus.isinline){
-				marker.setAlpha(OUT_OF_SERVICE_ALPHA);
-			}else{
-				marker.setAlpha(1f);
-			}
-			
-			busMarker.bus = bus;
-		}
-		ArrayList<Integer> remove = new ArrayList<Integer>();
-		int size = markers.size();
-		for(int i=0; i<size; i++){
-			int key = markers.keyAt(i);
-			if(!hasBus.contains(key)){
-				markers.valueAt(i).marker.remove();
-				remove.add(markers.keyAt(i));
-			}
-		}
-		// remove after otherwise .keyAt() will shift
-		for(int removeKey : remove){
-			markers.remove(removeKey);
-		}
+	public void update(final SparseArray<Bus> data){
+        fragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap map) {
+                ArrayList<Integer> hasBus = new ArrayList<Integer>();
+                for(int i=0; i < data.size(); i++){
+                    Bus bus = data.valueAt(i);
+                    if(bus.isinpark){
+                        continue;
+                    }
+                    if(useFilter && !isFiltered(bus)){
+                        continue;
+                    }
+                    hasBus.add(bus.id);
+
+                    BusMarker busMarker = markers.get(bus.id);
+                    Marker marker;
+                    boolean newlyCreated = false;
+
+                    int lineid = bus.lineid;
+                    if(lineid == 6){
+                        lineid = 4;
+                    }
+
+                    if(busMarker == null || busMarker.marker == null){
+                        LatLng latlng = new LatLng(bus.latitude, bus.longitude);
+                        marker = map.addMarker(new MarkerOptions().position(latlng));
+                        busMarker = new BusMarker(bus, marker);
+                        markers.put(bus.id, busMarker);
+                        newlyCreated = true;
+                    }else{
+                        marker = busMarker.marker;
+
+                        if(!bus.isLocationEqual(marker.getPosition())){
+                            LatLng latlng = new LatLng(bus.latitude, bus.longitude);
+                            marker.setPosition(latlng);
+                        }
+
+                        if(busMarker.bus.equals(bus)){
+                            continue;
+                        }
+                    }
+
+                    if(lineid == 0 || bus.isinpark){
+                        marker.setTitle(bus.name);
+                        if(bus.isinpark){
+                            marker.setSnippet(getString(R.string.bus_parking));
+                        }else{
+                            marker.setSnippet(getString(R.string.bus_no_line));
+                        }
+                    }else{
+                        marker.setTitle(String.format(getString(R.string.bus_line), lineid));
+                        marker.setSnippet(bus.name);
+                    }
+
+                    if(newlyCreated || busMarker.bus.lineid != lineid){
+                        Log.d("BusMapController", "Requesting icon "+bus.lineid+" id "+bus.id);
+                        BitmapDescriptor icon = BusIconCache.instance.getCache(bus.lineid);
+                        marker.setIcon(icon);
+                    }
+
+                    if(!bus.isinline){
+                        marker.setAlpha(OUT_OF_SERVICE_ALPHA);
+                    }else{
+                        marker.setAlpha(1f);
+                    }
+
+                    busMarker.bus = bus;
+                }
+                ArrayList<Integer> remove = new ArrayList<Integer>();
+                int size = markers.size();
+                for(int i=0; i<size; i++){
+                    int key = markers.keyAt(i);
+                    if(!hasBus.contains(key)){
+                        markers.valueAt(i).marker.remove();
+                        remove.add(markers.keyAt(i));
+                    }
+                }
+                // remove after otherwise .keyAt() will shift
+                for(int removeKey : remove){
+                    markers.remove(removeKey);
+                }
+            }
+        });
 	}
 
 	public Marker get(int id){
@@ -297,7 +289,7 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	/**
 	 * Is the filter enabled?
 	 * @param set true to enable filter, false otherwise
-	 * @see addFilter
+	 * @see .addFilter
 	 */
 	public void setFilterActive(boolean set){
 		this.useFilter = set;
@@ -463,178 +455,183 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	 * @param polylineSpliceFrom Polyline close to "from" as returned from `NearestLineToPoint`. The last point must be an existing polyline point.
 	 * @param polylineSpliceTo Polyline close to "to" as returned from `NearestLineToPoint`
 	 */
-	private void _drawPolyline(String lineId, String fromStop, String toStop, Double[][] polylineSpliceFrom, Double[][] polylineSpliceTo){
-		if(lineId.equals(currentPolyline)){
-			return;
-		}
-		currentPolyline = lineId;
-		_clearPolyline();
-		
-		// somehow inlining this check still make race condition
-		// http://sentry.whs.in.th/kusmartbus/android/group/107/
-		JSONObject listRoot = BusStopList.data();
-		if(listRoot == null){
-			return;
-		}
-		
-		int color = getResources().getColor(BusColor.getColor(Integer.valueOf(lineId)));
-		
-		boolean foundStart = fromStop == null;
-		boolean foundStop = toStop == null;
-		
-		// Draw stop marker
-		try{
-			JSONObject data = listRoot.getJSONObject("StopOrder");
-			// or maybe /group/107/ could be from this line
-			if(data == null){
-				return;
-			}
-			JSONArray line = data.getJSONArray(lineId);
-			JSONObject stopData = listRoot.getJSONObject("Stop");
-			BitmapDescriptor icon = StopIconCache.instance.getCache(lineId);
-			
-			stopMarker.ensureCapacity(line.length());
-			
-			for(int loop=0; loop<2; loop++){
-				for(int i=0; i<line.length(); i++){
-					JSONObject stop = stopData.getJSONObject(line.getString(i));
-					
-					if(!foundStart){
-						if(stop.getString("ID").equals(fromStop)){
-							foundStart = true;
-						}else{
-							continue;
-						}
-					}
-					
-					MarkerOptions marker = new MarkerOptions();
-					marker.position(
-							new LatLng(
-									stop.getDouble("Latitude"),
-									stop.getDouble("Longitude")
-							)
-					).title(stop.getString("Name"))
-						.anchor(0.5f, 0.5f)
-						.icon(icon);
-					
-					stopMarker.add(new StopMarker(map.addMarker(marker), stop));
-					
-					if(toStop != null && stop.getString("ID").equals(toStop)){
-						foundStop = true;
-						break;
-					}
-				}
-				// we traced the entire line and
-				// still doesn't find the start stop
-				if(!foundStart){
-					return;
-				}
-				// if we want to draw single loop
-				// then don't wrap around
-				if(foundStop){
-					break;
-				}
-			}
-		}catch(JSONException e){
-		}
-		// Draw lines
-		foundStart = false;
-		foundStop = false;
-		try {
-			JSONObject data = listRoot.getJSONObject("Polyline");
-			if(data == null){
-				return;
-			}
-			JSONArray line = data.getJSONArray(lineId);
-			if(line == null){
-				return;
-			}
-			
-			double[] initialItem = toDouble(line.getString(0).split(","));
-			float lastBearing = Float.MIN_VALUE;
-			LatLng lastItem = new LatLng(initialItem[0], initialItem[1]);
-			PolylineOptions pol = new PolylineOptions().width(5).color(color);
-			
-			BitmapDescriptor directionIcon = null;
-			// seems that drawing direction arrow is too much for low ram devices
-			if(!ActivityManagerCompat.isLowRamDevice((ActivityManager) getActivity().getSystemService(Context.ACTIVITY_SERVICE))){
-				directionIcon = DirectionIconCache.instance.getCache(lineId);
-			}
-			
-			for(int loop=0; loop<2; loop++){
-				// XXX: i don't know why 1 is here
-				// if i put 0 routing from ngam1 to sci fac will break
-				// if i put 1 mapfragment will break
-				// i could use an if, but i think i should get better understanding
-				// of the situation first
-				for(int i=1; i<line.length(); i++){
-					String[] rawItem = line.getString(i).split(",");
-					double[] item = toDouble(rawItem);
-					LatLng latlng = new LatLng(item[0], item[1]);
-					
-					if(polylineSpliceFrom != null){
-						if(polylineSpliceFrom[1][0].equals(item[0]) && polylineSpliceFrom[1][1].equals(item[1])){
-							foundStart = true;
-							lastItem = new LatLng(
-									polylineSpliceFrom[0][0],
-									polylineSpliceFrom[0][1]
-							);
-							pol.add(lastItem);
-						}
-						if(!foundStart){
-							continue;
-						}
-					}
-					
-					if(foundStart && polylineSpliceTo != null){
-						if(polylineSpliceTo[1][0].equals(item[0]) && polylineSpliceTo[1][1].equals(item[1])){
-							pol.add(new LatLng(
-									polylineSpliceTo[0][0],
-									polylineSpliceTo[0][1]
-							));
-							foundStop = true;
-							break;
-						}
-					}
-					
-					if(item[0] == 13.85004 && item[1] == 100.572433){
-						// https://code.google.com/p/gmaps-api-issues/issues/detail?id=5313
-						latlng = new LatLng(latlng.latitude + 0.000001, latlng.longitude); 
-					}
-					
-					pol.add(latlng);
-					
-					if(directionIcon != null){
-						// we don't use distance, only bearing
-						float[] distance = new float[2];
-						Location.distanceBetween(lastItem.latitude, lastItem.longitude, latlng.latitude, latlng.longitude, distance);
-						float bearing = distance[1] - 90;
-						
-						if(Math.abs(bearing - lastBearing) > 20){
-							MarkerOptions marker = new MarkerOptions();
-							marker.position(lastItem).anchor(0.5f, 0.5f)
-								.flat(true)
-								.rotation(bearing)
-								.icon(directionIcon);
-							directionMarker.add(map.addMarker(marker));
-						}
-						
-						lastBearing = bearing;
-					}
-					
-					lastItem = latlng;
-				}
-				if(polylineSpliceFrom == null || foundStop){
-					break;
-				}else if(polylineSpliceFrom != null && !foundStart){
-					Log.d("BusMapController", "Can't find from stop in polyline.");
-					break;
-				}
-			}
-			
-			polyline = map.addPolyline(pol);
-		} catch (JSONException e) {
-		}
+	private void _drawPolyline(final String lineId, final String fromStop, final String toStop, final Double[][] polylineSpliceFrom, final Double[][] polylineSpliceTo){
+        fragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap map) {
+                if(lineId.equals(currentPolyline)){
+                    return;
+                }
+                currentPolyline = lineId;
+                _clearPolyline();
+
+                // somehow inlining this check still make race condition
+                // http://sentry.whs.in.th/kusmartbus/android/group/107/
+                JSONObject listRoot = BusStopList.data();
+                if(listRoot == null){
+                    return;
+                }
+
+                int color = getResources().getColor(BusColor.getColor(Integer.valueOf(lineId)));
+
+                boolean foundStart = fromStop == null;
+                boolean foundStop = toStop == null;
+
+                // Draw stop marker
+                try{
+                    JSONObject data = listRoot.getJSONObject("StopOrder");
+                    // or maybe /group/107/ could be from this line
+                    if(data == null){
+                        return;
+                    }
+                    JSONArray line = data.getJSONArray(lineId);
+                    JSONObject stopData = listRoot.getJSONObject("Stop");
+                    BitmapDescriptor icon = StopIconCache.instance.getCache(lineId);
+
+                    stopMarker.ensureCapacity(line.length());
+
+                    for(int loop=0; loop<2; loop++){
+                        for(int i=0; i<line.length(); i++){
+                            JSONObject stop = stopData.getJSONObject(line.getString(i));
+
+                            if(!foundStart){
+                                if(stop.getString("ID").equals(fromStop)){
+                                    foundStart = true;
+                                }else{
+                                    continue;
+                                }
+                            }
+
+                            MarkerOptions marker = new MarkerOptions();
+                            marker.position(
+                                    new LatLng(
+                                            stop.getDouble("Latitude"),
+                                            stop.getDouble("Longitude")
+                                    )
+                            ).title(stop.getString("Name"))
+                                    .anchor(0.5f, 0.5f)
+                                    .icon(icon);
+
+                            stopMarker.add(new StopMarker(map.addMarker(marker), stop));
+
+                            if(toStop != null && stop.getString("ID").equals(toStop)){
+                                foundStop = true;
+                                break;
+                            }
+                        }
+                        // we traced the entire line and
+                        // still doesn't find the start stop
+                        if(!foundStart){
+                            return;
+                        }
+                        // if we want to draw single loop
+                        // then don't wrap around
+                        if(foundStop){
+                            break;
+                        }
+                    }
+                }catch(JSONException e){
+                }
+                // Draw lines
+                foundStart = false;
+                foundStop = false;
+                try {
+                    JSONObject data = listRoot.getJSONObject("Polyline");
+                    if(data == null){
+                        return;
+                    }
+                    JSONArray line = data.getJSONArray(lineId);
+                    if(line == null){
+                        return;
+                    }
+
+                    double[] initialItem = toDouble(line.getString(0).split(","));
+                    float lastBearing = Float.MIN_VALUE;
+                    LatLng lastItem = new LatLng(initialItem[0], initialItem[1]);
+                    PolylineOptions pol = new PolylineOptions().width(5).color(color);
+
+                    BitmapDescriptor directionIcon = null;
+                    // seems that drawing direction arrow is too much for low ram devices
+                    if(!ActivityManagerCompat.isLowRamDevice((ActivityManager) getActivity().getSystemService(Context.ACTIVITY_SERVICE))){
+                        directionIcon = DirectionIconCache.instance.getCache(lineId);
+                    }
+
+                    for(int loop=0; loop<2; loop++){
+                        // XXX: i don't know why 1 is here
+                        // if i put 0 routing from ngam1 to sci fac will break
+                        // if i put 1 mapfragment will break
+                        // i could use an if, but i think i should get better understanding
+                        // of the situation first
+                        for(int i=1; i<line.length(); i++){
+                            String[] rawItem = line.getString(i).split(",");
+                            double[] item = toDouble(rawItem);
+                            LatLng latlng = new LatLng(item[0], item[1]);
+
+                            if(polylineSpliceFrom != null){
+                                if(polylineSpliceFrom[1][0].equals(item[0]) && polylineSpliceFrom[1][1].equals(item[1])){
+                                    foundStart = true;
+                                    lastItem = new LatLng(
+                                            polylineSpliceFrom[0][0],
+                                            polylineSpliceFrom[0][1]
+                                    );
+                                    pol.add(lastItem);
+                                }
+                                if(!foundStart){
+                                    continue;
+                                }
+                            }
+
+                            if(foundStart && polylineSpliceTo != null){
+                                if(polylineSpliceTo[1][0].equals(item[0]) && polylineSpliceTo[1][1].equals(item[1])){
+                                    pol.add(new LatLng(
+                                            polylineSpliceTo[0][0],
+                                            polylineSpliceTo[0][1]
+                                    ));
+                                    foundStop = true;
+                                    break;
+                                }
+                            }
+
+                            if(item[0] == 13.85004 && item[1] == 100.572433){
+                                // https://code.google.com/p/gmaps-api-issues/issues/detail?id=5313
+                                latlng = new LatLng(latlng.latitude + 0.000001, latlng.longitude);
+                            }
+
+                            pol.add(latlng);
+
+                            if(directionIcon != null){
+                                // we don't use distance, only bearing
+                                float[] distance = new float[2];
+                                Location.distanceBetween(lastItem.latitude, lastItem.longitude, latlng.latitude, latlng.longitude, distance);
+                                float bearing = distance[1] - 90;
+
+                                if(Math.abs(bearing - lastBearing) > 20){
+                                    MarkerOptions marker = new MarkerOptions();
+                                    marker.position(lastItem).anchor(0.5f, 0.5f)
+                                            .flat(true)
+                                            .rotation(bearing)
+                                            .icon(directionIcon);
+                                    directionMarker.add(map.addMarker(marker));
+                                }
+
+                                lastBearing = bearing;
+                            }
+
+                            lastItem = latlng;
+                        }
+                        if(polylineSpliceFrom == null || foundStop){
+                            break;
+                        }else if(polylineSpliceFrom != null && !foundStart){
+                            Log.d("BusMapController", "Can't find from stop in polyline.");
+                            break;
+                        }
+                    }
+
+                    polyline = map.addPolyline(pol);
+                } catch (JSONException e) {
+                }
+            }
+        });
 	}
 	
 	/**
