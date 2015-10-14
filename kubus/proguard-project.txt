@@ -19,28 +19,9 @@
 #   public *;
 #}
 
-# v1.5 only please
--keepattributes SourceFile,LineNumberTable
--keepnames class *
-
-# Google Play Services
-
--keep class * extends java.util.ListResourceBundle {
-    protected Object[][] getContents();
-}
-
--keep public class com.google.android.gms.common.internal.safeparcel.SafeParcelable {
-    public static final *** NULL;
-}
-
--keepnames @com.google.android.gms.common.annotation.KeepName class *
--keepclassmembernames class * {
-    @ccom.google.android.gms.common.annotation.KeepName *;
-}
-
--keepnames class * implements android.os.Parcelable {
-    public static final ** CREATOR;
-}
+# Ease of debugging
+#-keepattributes SourceFile,LineNumberTable
+#-keepnames class *
 
 # wire
 
@@ -50,8 +31,6 @@
 }
 -keepattributes Signature
 -keep,allowoptimization class th.in.whs.ku.bus.protobuf.** { *; }
-#-keepnames class th.in.whs.ku.bus.protobuf.** { *; }
-#-keep class **$Builder extends com.squareup.wire.Message$Builder
 
 # remove log
 
@@ -65,3 +44,8 @@
 
 # okio proguard
 -dontwarn okio.**
+
+# Workaround Google Play Service still using the old HTTP class
+# https://code.google.com/p/android-developer-preview/issues/detail?id=3001
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**

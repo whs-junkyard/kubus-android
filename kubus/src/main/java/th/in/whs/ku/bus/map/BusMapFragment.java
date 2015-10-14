@@ -80,24 +80,30 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
 	public void onStart() {
 		super.onStart();
         fragment.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap map) {
-                Bundle args = getArguments();
-                if(!args.getBoolean("noMyLocation")){
-                    map.setMyLocationEnabled(true);
-                }
+			@Override
+			public void onMapReady(GoogleMap map) {
+				Bundle args = getArguments();
+				if (!args.getBoolean("noMyLocation")) {
+					map.setMyLocationEnabled(true);
+				}
 
-                map.getUiSettings().setMapToolbarEnabled(false);
-                map.setOnInfoWindowClickListener(BusMapFragment.this);
-                map.setOnMarkerClickListener(BusMapFragment.this);
-                map.setOnMapClickListener(BusMapFragment.this);
-                registerListener();
-            }
-        });
+				map.getUiSettings().setMapToolbarEnabled(false);
+				map.setOnInfoWindowClickListener(BusMapFragment.this);
+				map.setOnMarkerClickListener(BusMapFragment.this);
+				map.setOnMapClickListener(BusMapFragment.this);
+				registerListener();
+			}
+		});
 	}
 
 	public void onResume(){
 		super.onResume();
+		getMapAsync(new OnMapReadyCallback() {
+			@Override
+			public void onMapReady(GoogleMap map) {
+				map.clear();
+			}
+		});
 		if(listenerId != -1){
 			BusPosition.wsConnect();
 		}
@@ -197,9 +203,6 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
                 ArrayList<Integer> hasBus = new ArrayList<Integer>();
                 for(int i=0; i < data.size(); i++){
                     Bus bus = data.valueAt(i);
-                    if(bus.isinpark){
-                        continue;
-                    }
                     if(useFilter && !isFiltered(bus)){
                         continue;
                     }
@@ -251,7 +254,7 @@ public class BusMapFragment extends Fragment implements OnInfoWindowClickListene
                         marker.setIcon(icon);
                     }
 
-                    if(!bus.isinline){
+                    if(!bus.isinline || bus.isinpark){
                         marker.setAlpha(OUT_OF_SERVICE_ALPHA);
                     }else{
                         marker.setAlpha(1f);
